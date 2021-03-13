@@ -41,7 +41,9 @@ OBJECT_TO_IDX = {
     'circle': 2,
     'cylinder': 3,
     'square': 4,
-    'agent': 5,
+    'box': 5,
+    'dax': 6,
+    'agent': 7,
 }
 
 IDX_TO_OBJECT = dict(zip(OBJECT_TO_IDX.values(), OBJECT_TO_IDX.keys()))
@@ -213,6 +215,61 @@ class Circle(WorldObj):
         else:
             return False
 
+
+class Box(WorldObj):
+    """
+    Box is not movable or pickable. Note that Box can be overflow and overlap!
+    """
+    def __init__(self, color='blue', size=1, vector_representation=None, object_representation=None, target=False,
+                 weight="light"):
+        super(Box, self).__init__('box', color, size, vector_representation,
+                                  object_representation=object_representation, target=target, weight=weight)
+
+    def can_pickup(self):
+        return False
+
+    def can_push(self):
+        return False
+
+    def render(self, r):
+        self._set_color(r)
+        raise NotImplementedError("Rendering for BOX is not implemented yet!")
+        # r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
+
+    def push(self):
+        self.momentum += 1
+        if self.momentum >= self.momentum_threshold:
+            self.momentum = 0
+            return True
+        else:
+            return False
+
+        
+class Dax(WorldObj):
+    def __init__(self, color='blue', size=1, vector_representation=None, object_representation=None, target=False,
+                 weight="light"):
+        super(Dax, self).__init__('dax', color, size, vector_representation,
+                                  object_representation=object_representation, target=target, weight=weight)
+
+    def can_pickup(self):
+        return True
+
+    def can_push(self):
+        return True
+
+    def render(self, r):
+        self._set_color(r)
+        raise NotImplementedError("Rendering for DAX is not implemented yet!")
+        # r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
+
+    def push(self):
+        self.momentum += 1
+        if self.momentum >= self.momentum_threshold:
+            self.momentum = 0
+            return True
+        else:
+            return False
+        
 
 class Grid:
     """
@@ -424,7 +481,7 @@ class MiniGridEnv(gym.Env):
         # Done completing task
         done = 6
 
-    def __init__(self, grid_size=None, width=None, height=None, max_steps=100, seed=1337):
+    def __init__(self, grid_size=None, width=None, height=None, max_steps=100, seed=42):
         # Can't set both grid_size and width/height
         if grid_size:
             assert width == None and height == None
@@ -508,6 +565,8 @@ class MiniGridEnv(gym.Env):
             'circle': 'A',
             'square': 'B',
             'cylinder': 'C',
+            'box': 'D',
+            'dax': 'E',
         }
 
         # Map agent's direction to short string
@@ -538,7 +597,7 @@ class MiniGridEnv(gym.Env):
 
     def _rand_int(self, low, high):
         """
-        Generate random integer in [low,high[
+        Generate random integer in [low,high]
         """
 
         return self.np_random.randint(low, high)
@@ -713,7 +772,7 @@ class MiniGridEnv(gym.Env):
             return
 
         if self.grid_render is None or self.grid_render.window is None or (self.grid_render.width != self.width * tile_size):
-            from GroundedScan.gym_minigrid.rendering import Renderer
+            from gym_minigrid.rendering import Renderer
             self.grid_render = Renderer(
                 self.width * tile_size,
                 self.height * tile_size,

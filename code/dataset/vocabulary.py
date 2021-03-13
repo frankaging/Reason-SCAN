@@ -10,7 +10,7 @@ class Vocabulary(object):
     INTRANSITIVE_VERBS = {"walk"}
     TRANSITIVE_VERBS = {"push", "pull"}
     ADVERBS = {"quickly", "slowly", "while zigzagging", "while spinning", "cautiously", "hesitantly"}
-    NOUNS = {"circle", "square", "cylinder"}
+    NOUNS = {"circle", "square", "cylinder", "box", "dax"}
     COLOR_ADJECTIVES = {"green", "red", "blue", "yellow"}
     SIZE_ADJECTIVES = {"small", "big"}
     
@@ -28,9 +28,11 @@ class Vocabulary(object):
                        "bigger than"}
 
     def __init__(self, intransitive_verbs: Dict[str, str], transitive_verbs: Dict[str, str], adverbs: Dict[str, str],
-                 nouns: Dict[str, str], color_adjectives: Dict[str, str], size_adjectives: Dict[str, str]):
+                 nouns: Dict[str, str], color_adjectives: Dict[str, str], size_adjectives: Dict[str, str], 
+                 relative_pronouns: Dict[str, str], relation_clauses: Dict[str, str]):
         all_words = list(intransitive_verbs.keys()) + list(transitive_verbs.keys()) + list(adverbs.keys()) \
-                    + list(nouns.keys()) + list(color_adjectives.keys()) + list(size_adjectives.keys())
+                    + list(nouns.keys()) + list(color_adjectives.keys()) + list(size_adjectives.keys()) \
+                    + list(relative_pronouns.keys()) + list(relation_clauses.keys())
         all_unique_words = set(all_words)
         self._intransitive_verbs = intransitive_verbs
         self._transitive_verbs = transitive_verbs
@@ -38,6 +40,8 @@ class Vocabulary(object):
         self._nouns = nouns
         self._color_adjectives = color_adjectives
         self._size_adjectives = size_adjectives
+        self._relative_pronouns = relative_pronouns
+        self._relation_clauses = relation_clauses
         assert len(all_words) == len(all_unique_words), "Overlapping vocabulary (the same string used twice)."
         if len(color_adjectives) > 0 and len(size_adjectives) > 0:
             self._adjectives = list(self._color_adjectives.values()) + list(self._size_adjectives.values())
@@ -52,8 +56,16 @@ class Vocabulary(object):
         self._translation_table.update(self._color_adjectives)
         self._translation_table.update(self._size_adjectives)
         self._translation_table.update(self._adverbs)
+        self._translation_table.update(self._relative_pronouns)
+        self._translation_table.update(self._relation_clauses)
         self._translate_to = {semantic_word: word for word, semantic_word in self._translation_table.items()}
 
+    def get_relative_pronouns(self):
+        return list(self._relative_pronouns.keys()).copy()
+    
+    def get_relation_clauses(self):
+        return list(self._relation_clauses.keys()).copy()
+        
     def get_intransitive_verbs(self):
         return list(self._intransitive_verbs.keys()).copy()
 
@@ -110,18 +122,23 @@ class Vocabulary(object):
 
     @classmethod
     def initialize(cls, intransitive_verbs: List[str], transitive_verbs: List[str], adverbs: List[str],
-                   nouns: List[str], color_adjectives: List[str], size_adjectives: List[str]):
+                   nouns: List[str], color_adjectives: List[str], size_adjectives: List[str], 
+                   relative_pronouns: List[str], relation_clauses: List[str]):
         intransitive_verbs = cls.bind_words_to_meanings(intransitive_verbs, cls.INTRANSITIVE_VERBS.copy())
         transitive_verbs = cls.bind_words_to_meanings(transitive_verbs, cls.TRANSITIVE_VERBS.copy())
         nouns = cls.bind_words_to_meanings(nouns, cls.NOUNS.copy())
         color_adjectives = cls.bind_words_to_meanings(color_adjectives, cls.COLOR_ADJECTIVES.copy())
         size_adjectives = cls.bind_words_to_meanings(size_adjectives, cls.SIZE_ADJECTIVES.copy())
         adverbs = cls.bind_words_to_meanings(adverbs, cls.ADVERBS.copy())
-        return cls(intransitive_verbs, transitive_verbs, adverbs, nouns, color_adjectives, size_adjectives)
+        relative_pronouns = cls.bind_words_to_meanings(relative_pronouns, cls.RELATIVE_PRONOUNS.copy())
+        relation_clauses = cls.bind_words_to_meanings(relation_clauses, cls.RELATION_CLAUSE.copy())
+        return cls(intransitive_verbs, transitive_verbs, adverbs, nouns, color_adjectives, size_adjectives, 
+                   relative_pronouns, relation_clauses)
 
     @classmethod
     def sample(cls, num_intransitive=1, num_transitive=1, num_adverbs=6, num_nouns=3,
-               num_color_adjectives=3, num_size_adjectives=2):
+               num_color_adjectives=3, num_size_adjectives=2, num_relative_pronouns=1, 
+               num_relation_clauses=3):
         """
         Sample random nonce-words and initialize the vocabulary with these.
         """
@@ -132,13 +149,19 @@ class Vocabulary(object):
         nouns = [pronounceable.generate_word() for _ in range(num_nouns)]
         color_adjectives = [pronounceable.generate_word() for _ in range(num_color_adjectives)]
         size_adjectives = [pronounceable.generate_word() for _ in range(num_size_adjectives)]
+        relative_pronouns = [pronounceable.generate_word() for _ in range(num_relative_pronouns)]
+        relation_clauses = [pronounceable.generate_word() for _ in range(num_relation_clauses)]
+        
         intransitive_verbs = cls.bind_words_to_meanings(intransitive_verbs, cls.INTRANSITIVE_VERBS.copy())
         transitive_verbs = cls.bind_words_to_meanings(transitive_verbs, cls.TRANSITIVE_VERBS.copy())
         nouns = cls.bind_words_to_meanings(nouns, cls.NOUNS.copy())
         color_adjectives = cls.bind_words_to_meanings(color_adjectives, cls.COLOR_ADJECTIVES.copy())
         size_adjectives = cls.bind_words_to_meanings(size_adjectives, cls.SIZE_ADJECTIVES.copy())
         adverbs = cls.bind_words_to_meanings(adverbs, cls.ADVERBS.copy())
-        return cls(intransitive_verbs, transitive_verbs, adverbs, nouns, color_adjectives, size_adjectives)
+        relative_pronouns = cls.bind_words_to_meanings(relative_pronouns, cls.RELATIVE_PRONOUNS.copy())
+        relation_clauses = cls.bind_words_to_meanings(relation_clauses, cls.RELATION_CLAUSE.copy())
+        return cls(intransitive_verbs, transitive_verbs, adverbs, nouns, color_adjectives, size_adjectives, 
+                   relative_pronouns, relation_clauses)
 
     def to_representation(self):
         return {
@@ -147,11 +170,13 @@ class Vocabulary(object):
             "nouns": self._nouns,
             "adverbs": self._adverbs,
             "color_adjectives": self._color_adjectives,
-            "size_adjectives": self._size_adjectives
+            "size_adjectives": self._size_adjectives, 
+            "relative_pronouns": self._relative_pronouns, 
+            "relation_clauses": self._relation_clauses
         }
 
     @classmethod
     def from_representation(cls, representation: Dict[str, Dict[str, str]]):
         return cls(representation["intransitive_verbs"], representation["transitive_verbs"],
                    representation["adverbs"], representation["nouns"], representation["color_adjectives"],
-                   representation["size_adjectives"])
+                   representation["size_adjectives"], representation[relative_pronouns], representation[relation_clauses])
