@@ -215,7 +215,7 @@ class Circle(WorldObj):
         else:
             return False
 
-
+        
 class Box(WorldObj):
     """
     Box is not movable or pickable. Note that Box can be overflow and overlap!
@@ -233,8 +233,17 @@ class Box(WorldObj):
 
     def render(self, r):
         self._set_color(r)
-        raise NotImplementedError("Rendering for BOX is not implemented yet!")
-        # r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
+        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
+
+#     def render(self, img):
+#         c = COLORS[self.color]
+
+#         # Outline
+#         fill_coords(img, point_in_rect(0.12, 0.88, 0.12, 0.88), c)
+#         fill_coords(img, point_in_rect(0.18, 0.82, 0.18, 0.82), (0,0,0))
+
+#         # Horizontal slit
+#         fill_coords(img, point_in_rect(0.16, 0.84, 0.47, 0.53), c)
 
     def push(self):
         self.momentum += 1

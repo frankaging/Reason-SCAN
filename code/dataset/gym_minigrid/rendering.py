@@ -211,3 +211,6 @@ class Renderer:
 
     def fillRect(self, x, y, width, height, r, g, b, a=255):
         self.painter.fillRect(QRect(x, y, width, height), QColor(r, g, b, a))
+        
+    def drawRect(self, x, y, width, height):
+        self.painter.drawRect(x, y, width, height)
