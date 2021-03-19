@@ -442,11 +442,11 @@ class Grammer(object):
                     recursive_parent = obj_curr
                 if and_parent == "":
                     and_parent = obj_curr
-                grounded_rel_clause.append(obj_map[obj_curr])
+                grounded_rel_clause.append("the " + obj_map[obj_curr])
                 continue # the first obj has no relation
 
             if obj_curr.startswith("$OBJ"):
-                grounded_rel_clause.append(obj_map[obj_curr])
+                grounded_rel_clause.append("the " + obj_map[obj_curr])
             else:
                 recursive_child = rel_clause[i+1]
                 rel = rel_map[(recursive_parent, recursive_child)]
