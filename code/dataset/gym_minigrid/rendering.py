@@ -5,7 +5,6 @@ from PyQt5.QtCore import QPoint, QRect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QTextEdit
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QFrame
 
-
 class Window(QMainWindow):
     """
     Simple application window to render the environment into
@@ -121,9 +120,11 @@ class Renderer:
         self.painter.setRenderHint(QPainter.Antialiasing, False)
 
         # Clear the background
-        self.painter.setBrush(QColor(0, 0, 0))
-        self.painter.drawRect(0, 0, self.width - 1, self.height - 1)
-
+        # comment this out for ReaSCAN purpose! little hacky i have to admit!
+        # self.painter.setBrush(QColor(0, 0, 0))
+        # self.painter.drawRect(0, 0, self.width - 1, self.height - 1)
+        self.painter.fillRect(QRect(0, 0, self.width - 1, self.height - 1), QColor(0, 0, 0))
+        
     def endFrame(self):
         self.painter.end()
 
@@ -212,5 +213,29 @@ class Renderer:
     def fillRect(self, x, y, width, height, r, g, b, a=255):
         self.painter.fillRect(QRect(x, y, width, height), QColor(r, g, b, a))
         
-    def drawRect(self, x, y, width, height):
+    def drawRect(self, x, y, width, height, line_width=5):
+        # get current pen!
+        pen = self.painter.pen()
+        reset_widthF = pen.widthF()
+        
+        # draw the thicker box!
+        pen.setWidthF(line_width)
+        pen.setJoinStyle(Qt.MiterJoin)
+        self.painter.setPen(pen)
+        
+        # draw the shape
+#         points = [
+#             (0, 60),
+#             (60, 60),
+#             (60, 0),
+#             (0, 0)
+#         ]
+#         points = map(lambda p: QPoint(p[0], p[1]), points)
+#         self.painter.drawPolygon(QPolygon(points))
+        
         self.painter.drawRect(x, y, width, height)
+        
+        # reset back to avoid confusion for other shapes!
+        pen = self.painter.pen()
+        pen.setWidthF(reset_widthF)
+        self.painter.setPen(pen)

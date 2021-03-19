@@ -10,22 +10,18 @@ class Vocabulary(object):
     INTRANSITIVE_VERBS = {"walk"}
     TRANSITIVE_VERBS = {"push", "pull"}
     ADVERBS = {"quickly", "slowly", "while zigzagging", "while spinning", "cautiously", "hesitantly"}
-    NOUNS = {"circle", "square", "cylinder", "box", "dax"}
+    NOUNS = {"circle", "square", "cylinder", "box"}
     COLOR_ADJECTIVES = {"green", "red", "blue", "yellow"}
     SIZE_ADJECTIVES = {"small", "big"}
     
     # for relations
-    RELATIVE_PRONOUNS = {"that is", "which is"}
+    RELATIVE_PRONOUNS = {"that is"}
     RELATION_CLAUSE = {"in the same row as", 
                        "in the same column as", 
                        "in the same color as", 
                        "in the same shape as", 
-                       "in the same size as", 
-                       "same as", 
-                       "inside of", 
-                       "next to", 
-                       "smaller than", 
-                       "bigger than"}
+                       "in the same size as",
+                       "inside of"}
 
     def __init__(self, intransitive_verbs: Dict[str, str], transitive_verbs: Dict[str, str], adverbs: Dict[str, str],
                  nouns: Dict[str, str], color_adjectives: Dict[str, str], size_adjectives: Dict[str, str], 

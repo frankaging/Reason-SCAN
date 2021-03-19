@@ -5,6 +5,8 @@ import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
+from gym_minigrid.rendering import Renderer
+
 # Size in pixels of a cell in the full-scale human view
 CELL_PIXELS = 60
 
@@ -130,15 +132,21 @@ class Square(WorldObj):
                  weight="light"):
         super().__init__('square', color, size, vector_representation=vector_representation,
                          object_representation=object_representation, target=target, weight=weight)
+        # TODO: generalize sizes
+        self.drawing_offset_per_size = 2
 
     def render(self, r):
         self._set_color(r)
 
         # TODO: max_size is 4 here hardcoded
+        if self.size == 4:
+            width = (CELL_PIXELS * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
+        else:
+            width = (CELL_PIXELS * (self.size / 4))
         r.drawPolygon([
-            (0, CELL_PIXELS * (self.size / 4)),
-            (CELL_PIXELS * (self.size / 4), CELL_PIXELS * (self.size / 4)),
-            (CELL_PIXELS * (self.size / 4), 0),
+            (0, width),
+            (width, width),
+            (width, 0),
             (0, 0)
         ])
 
@@ -148,6 +156,9 @@ class Square(WorldObj):
     def can_push(self):
         return True
 
+    def can_object_overlap(self):
+        return False
+    
     def push(self):
         self.momentum += 1
         if self.momentum >= self.momentum_threshold:
@@ -162,16 +173,25 @@ class Cylinder(WorldObj):
         super(Cylinder, self).__init__('cylinder', color, size, vector_representation,
                                        object_representation=object_representation, weight=weight)
         # TODO: generalize sizes
+        self.drawing_offset_per_size = 2
 
     def can_pickup(self):
         return True
 
+    def can_object_overlap(self):
+        return False
+    
     def render(self, r):
         self._set_color(r)
 
         # Vertical quad
-        parallelogram_width = (CELL_PIXELS / 2) * (self.size / 4)
-        parallelogram_height = CELL_PIXELS * (self.size / 4)
+        if self.size == 4:
+            parallelogram_width = ((CELL_PIXELS / 2) * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
+            parallelogram_height = (CELL_PIXELS * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
+        else:
+            parallelogram_width = ((CELL_PIXELS / 2) * (self.size / 4))
+            parallelogram_height = (CELL_PIXELS * (self.size / 4))
+
         r.drawPolygon([
             (CELL_PIXELS / 2, 0),
             (CELL_PIXELS / 2 + parallelogram_width, 0),
@@ -196,16 +216,23 @@ class Circle(WorldObj):
                  weight="light"):
         super(Circle, self).__init__('circle', color, size, vector_representation,
                                      object_representation=object_representation, target=target, weight=weight)
-
+        self.drawing_offset_per_size = 0.5
     def can_pickup(self):
         return True
 
     def can_push(self):
         return True
 
+    def can_object_overlap(self):
+        return False
+
     def render(self, r):
         self._set_color(r)
-        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
+        if self.size == 4:
+            radius = CELL_PIXELS // 10 * self.size - (self.drawing_offset_per_size * self.size)
+        else:
+            radius = CELL_PIXELS // 10 * self.size
+        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, radius)
 
     def push(self):
         self.momentum += 1
@@ -221,9 +248,11 @@ class Box(WorldObj):
     Box is not movable or pickable. Note that Box can be overflow and overlap!
     """
     def __init__(self, color='blue', size=1, vector_representation=None, object_representation=None, target=False,
-                 weight="light"):
+                 weight="light", contains=None):
         super(Box, self).__init__('box', color, size, vector_representation,
                                   object_representation=object_representation, target=target, weight=weight)
+        self.contains = contains
+        self.border_color = color
 
     def can_pickup(self):
         return False
@@ -231,19 +260,27 @@ class Box(WorldObj):
     def can_push(self):
         return False
 
+    def can_object_overlap(self):
+        return True
+    
+    def can_contain(self):
+        """Can this contain another object?"""
+        return False
+    
+    def _set_color(self, r):
+        """
+        This is special for box which is only to draw the border color.
+        """
+        # set border color only
+        c = COLORS[self.color]
+        border_color = COLORS[self.border_color]
+        r.setLineColor(border_color[0], border_color[1], border_color[2])
+    
     def render(self, r):
         self._set_color(r)
-        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
-
-#     def render(self, img):
-#         c = COLORS[self.color]
-
-#         # Outline
-#         fill_coords(img, point_in_rect(0.12, 0.88, 0.12, 0.88), c)
-#         fill_coords(img, point_in_rect(0.18, 0.82, 0.18, 0.82), (0,0,0))
-
-#         # Horizontal slit
-#         fill_coords(img, point_in_rect(0.16, 0.84, 0.47, 0.53), c)
+        r.drawRect(0,0,
+                   CELL_PIXELS * self.size, 
+                   CELL_PIXELS * self.size, line_width=8)
 
     def push(self):
         self.momentum += 1
@@ -266,6 +303,9 @@ class Dax(WorldObj):
     def can_push(self):
         return True
 
+    def can_object_overlap(self):
+        return False
+    
     def render(self, r):
         self._set_color(r)
         raise NotImplementedError("Rendering for DAX is not implemented yet!")
@@ -321,10 +361,15 @@ class Grid:
         from copy import deepcopy
         return deepcopy(self)
 
-    def set(self, i, j, v):
+    def set(self, i, j, v, overlapping=False):
         assert i >= 0 and i < self.width
         assert j >= 0 and j < self.height
-        self.grid[j * self.width + i] = v
+        if self.grid[j * self.width + i] == None:
+            self.grid[j * self.width + i] = v
+        else:
+            old_v = self.grid[j * self.width + i]
+            if overlapping or old_v.can_object_overlap():
+                self.grid[j * self.width + i] = [old_v, v]
 
     def get(self, i, j):
         assert i >= 0 and i < self.width
@@ -436,10 +481,17 @@ class Grid:
                     r.fillRect(i * CELL_PIXELS, j * CELL_PIXELS, CELL_PIXELS, CELL_PIXELS, r=color, g=color, b=color)
                 if cell == None:
                     continue
-                r.push()
-                r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
-                cell.render(r)
-                r.pop()
+                if isinstance(cell, list):
+                    for sub_cell in cell:
+                        r.push()
+                        r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
+                        sub_cell.render(r)
+                        r.pop()
+                else:
+                    r.push()
+                    r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
+                    cell.render(r)
+                    r.pop()
 
         r.pop()
 
@@ -596,7 +648,12 @@ class MiniGridEnv(gym.Env):
                 if not c:
                     str += '  '
                     continue
-                str += OBJECT_TO_STR[c.type] + c.color[0].upper()
+                if len(c) > 1:
+                    # very hacky way assuming ReaSCAN is not using this anyway!
+                    for sub_c in c:
+                        str += OBJECT_TO_STR[sub_c.type] + sub_c.color[0].upper()
+                else:
+                    str += OBJECT_TO_STR[c.type] + c.color[0].upper()
             if j < self.grid.height - 1:
                 str += '\n'
         return str
@@ -646,7 +703,7 @@ class MiniGridEnv(gym.Env):
             ))
 
             # Don't place the object on top of another object
-            if self.grid.get(*pos) != None:
+            if self.grid.get(*pos) != None and not obj.can_object_overlap():
                 continue
 
             # Check if there is a filtering criterion
@@ -655,7 +712,10 @@ class MiniGridEnv(gym.Env):
 
             break
 
-        self.grid.set(*pos, obj)
+        if obj is not None and not obj.can_object_overlap():
+            self.grid.set(*pos, obj)
+        else:
+            self.grid.set(*pos, obj, overlapping=True)
 
         if obj is not None:
             obj.init_pos = pos
@@ -781,7 +841,7 @@ class MiniGridEnv(gym.Env):
             return
 
         if self.grid_render is None or self.grid_render.window is None or (self.grid_render.width != self.width * tile_size):
-            from gym_minigrid.rendering import Renderer
+            # from gym_minigrid.rendering import Renderer
             self.grid_render = Renderer(
                 self.width * tile_size,
                 self.height * tile_size,

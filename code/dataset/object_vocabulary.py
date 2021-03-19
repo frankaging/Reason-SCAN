@@ -100,6 +100,14 @@ class ObjectVocabulary(object):
     def sample_color(self):
         return random.choice(list(self._colors))
 
+    def sample_shape(self, exclude_box=True):
+        shapes = []
+        if exclude_box:
+            for s in self._shapes:
+                if "box" not in s:
+                    shapes.append(s)
+        return random.choice(list(shapes))
+    
     def get_object_vector(self, shape: str, color: str, size: int) -> np.ndarray:
         assert self.has_object(shape, color, size), "Trying to get an unavailable object vector from the vocabulary/"
         return self._object_vectors[shape][color][size]
