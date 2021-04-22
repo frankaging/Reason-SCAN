@@ -94,19 +94,45 @@ class ObjectVocabulary(object):
     def all_objects(self):
         return product(self.object_sizes, self.object_colors, self.object_shapes)
 
-    def sample_size(self):
-        return random.choice(self._sizes)
-
-    def sample_color(self):
-        return random.choice(list(self._colors))
-
-    def sample_shape(self, exclude_box=True):
-        shapes = []
+    def sample_size(self, _exclude=None):
+        if _exclude != None:
+            sizes = set(self._sizes) - set(_exclude)
+            return random.choice(list(sizes))
+        else:
+            return random.choice(self._sizes)
+    
+    def sample_size_with_prior(self, prior="small"):
+        """
+        Sample size based on annotated size, if it is small,
+        we will sample from [min_size, max_size) to make sure
+        validity.
+        """
+        if prior == "small":
+            prior_sizes = list(range(self._min_size, self._max_size))
+        elif prior == "big":
+            prior_sizes = list(range(self._min_size+1, self._max_size+1))
+        return random.choice(prior_sizes)
+        
+    def sample_color(self, _exclude=None):
+        if _exclude != None:
+            colors = set(self._colors) - set(_exclude)
+            return random.choice(list(colors))
+        else:
+            return random.choice(list(self._colors))
+    
+    def sample_shape(self, exclude_box=True, _exclude=None):
+        shapes = set(self._shapes)
         if exclude_box:
-            for s in self._shapes:
-                if "box" not in s:
-                    shapes.append(s)
-        return random.choice(list(shapes))
+            shapes = set(self._shapes) - set(["box"])
+        
+        filtered_shape = []
+        for s in list(shapes):
+            if _exclude != None:
+                if s not in _exclude:
+                    filtered_shape.append(s)
+            else:
+                filtered_shape.append(s)
+        return random.choice(filtered_shape)
     
     def get_object_vector(self, shape: str, color: str, size: int) -> np.ndarray:
         assert self.has_object(shape, color, size), "Trying to get an unavailable object vector from the vocabulary/"
