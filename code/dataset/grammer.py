@@ -112,13 +112,17 @@ class Grammer(object):
         
         self.vocabulary = vocabulary # this is not necessary if not grounding actual commands
     
-    def _sample_object_pattern(self):
+    def _sample_object_pattern(self, root=False):
         """
         This function only sample patterns in abstractions.
         """
         size_pool = ["", self.SIZE_REGEX]
         color_pool = ["", self.COLOR_REGEX]
-        shape_pool = [self.SHAPE_REGEX, self.ABSTRACT_SHAPE_REGEX]
+        if root:
+            shape_pool = [self.SHAPE_REGEX, self.ABSTRACT_SHAPE_REGEX]
+        else:
+            shape_pool = [self.SHAPE_REGEX]
+        # including self.ABSTRACT_SHAPE_REGEX is very ambitious!
         sampled_patterns = []
         for obj_comp in product(size_pool, 
                                 color_pool,
@@ -167,9 +171,10 @@ class Grammer(object):
         This is helper as it will not explode your disk to generate a way
         too large version of the dataset.
         """
-        return ['$OBJ_0 ^ $OBJ_1',
-                '$OBJ_0 ^ $OBJ_1 & $OBJ_2',
-                '$OBJ_0 ^ $OBJ_1 ^ $OBJ_2']
+        # return ['$OBJ_0 ^ $OBJ_1',
+        #         '$OBJ_0 ^ $OBJ_1 & $OBJ_2',
+        #         '$OBJ_0 ^ $OBJ_1 ^ $OBJ_2']
+        return ['$OBJ_0 ^ $OBJ_1 & $OBJ_2']
     
     def _sample_grammer_pattern_reascan_length_split(self, obj_hiarch_only=True):
         """
@@ -329,9 +334,11 @@ class Grammer(object):
         object_count = len(objects)
         objects = [f"$OBJ_{i}" for i in range(object_count)] # remake so we can order
         obj_permutator = []
+        root = True
         for _ in objects:
-            obj_patterns = self._sample_object_pattern()
+            obj_patterns = self._sample_object_pattern(root=root)
             obj_permutator.append(obj_patterns)
+            root = False
         obj_permuations = product(*obj_permutator)
         
         sampled_object_relation_grammers = []
@@ -375,6 +382,10 @@ class Grammer(object):
                                                       # following relation must be color. others do not
                                                       # quite make sense!
                                         break
+                            if not valid:
+                                break
+                    if not valid:
+                        break
                     idx += len(child_node)
                 if valid:
                     # i think the object map + rel_map is one of the valid combo then!
@@ -428,7 +439,11 @@ class Grammer(object):
                 obj_perms.append(obj_perm)
         return obj_perms
         
-    def repre_str_command(self, rel_clause, rel_map, obj_map, verb=None, adverb=None):
+    def repre_str_command(
+        self, rel_clause, rel_map, obj_map, 
+        obj_determiner_map, 
+        verb, adverb
+    ):
         rel_clause = rel_clause.split(" ")
 
         # serialize back
@@ -442,18 +457,24 @@ class Grammer(object):
                     recursive_parent = obj_curr
                 if and_parent == "":
                     and_parent = obj_curr
-                grounded_rel_clause.append("the " + obj_map[obj_curr])
+                grounded_rel_clause.append(obj_determiner_map[obj_curr] + " " + obj_map[obj_curr])
                 continue # the first obj has no relation
 
             if obj_curr.startswith("$OBJ"):
-                grounded_rel_clause.append("the " + obj_map[obj_curr])
+                grounded_rel_clause.append(obj_determiner_map[obj_curr] + " " + obj_map[obj_curr])
             else:
                 recursive_child = rel_clause[i+1]
                 rel = rel_map[(recursive_parent, recursive_child)]
                 rel_str = self.REL_REGEX_VOCAB_MAPPING[rel]
                 if obj_curr == self.RECURSIVE_REGEX:
-                    grounded_rel_clause.append("that is")
+                    grounded_rel_clause.append(self.RECURSIVE)
                 else:
-                    grounded_rel_clause.append("and")
+                    grounded_rel_clause.append(self.AND)
                 grounded_rel_clause.append(rel_str)
-        return " ".join(grounded_rel_clause)
+        
+        if verb in self.vocabulary.get_transitive_verbs():
+            verb_str = verb
+        else:
+            ver_str = " ".join([verb, "to"])
+        output_str = ver_str + " " + " ".join(grounded_rel_clause) + " " + adverb
+        return output_str.strip() # when adverb is empty.

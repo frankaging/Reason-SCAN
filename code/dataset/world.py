@@ -341,7 +341,18 @@ class World(MiniGridEnv):
             raise ValueError("Trying to create an object shape {} that is not implemented.".format(object_spec.shape))
 
     def position_taken(self, position: Position):
-        return self.grid.get(position.column, position.row) is not None
+        exist_cell = self.grid.get(position.column, position.row)
+        if exist_cell is None:
+            return False
+        else:
+            if isinstance(exist_cell, list):
+                return True
+            else:
+                if exist_cell.type == "box":
+                    return False
+                else:
+                    return True
+        assert False
 
     def within_grid(self, position: Position):
         if 0 <= position.row < self.grid_size and 0 <= position.column < self.grid_size:
@@ -462,6 +473,8 @@ class World(MiniGridEnv):
         target_object = None
         for i, positioned_object in enumerate(self._placed_object_list):
             if positioned_object.position == target_position:
+                if positioned_object.object.shape == "box":
+                    continue # box is not movable in ReaSCAN!
                 target_object = self._placed_object_list[i]
                 del self._placed_object_list[i]
                 break
@@ -471,6 +484,8 @@ class World(MiniGridEnv):
 
         # remove from gym grid
         self.grid.get(target_position.column, target_position.row)
+        # I don't think we need this! This results in double delete!
+        # No, I am wrong. : )
         self.grid.set(target_position.column, target_position.row, None)
 
         self._occupied_positions.remove((target_position.column, target_position.row))
@@ -521,6 +536,16 @@ class World(MiniGridEnv):
 
     def push_or_pull_object(self, direction: Direction, primitive_command: str):
         current_object = self.grid.get(*self.agent_pos)
+        # what to pick up, we might need to do something here for the box case!
+        if isinstance(current_object, list):
+            if len(current_object) == 2:
+                # there is a box! we cannot pick up box for now
+                # we need to pick up the other objects.
+                if current_object[0].type != "box":
+                    current_object = current_object[0]
+                else:
+                    current_object = current_object[1]
+
         if not current_object:
             self._observed_commands.append(primitive_command)
             self._observed_situations.append(self.get_current_situation())
@@ -531,7 +556,9 @@ class World(MiniGridEnv):
                 new_position = Position(column=new_position[0], row=new_position[1])
                 # If the new position isn't occupied by another object, push it forward.
                 if self.within_grid(new_position):
-                    if not self.grid.get(new_position[0], new_position[1]):
+                    next_cell = self.grid.get(new_position[0], new_position[1])
+                    if not next_cell or \
+                       (not isinstance(next_cell, list) and next_cell.type == "box"):
                         self.move_object(Position(column=self.agent_pos[0], row=self.agent_pos[1]), new_position)
                         if primitive_command == "push":
                             self.take_step_in_direction(direction, primitive_command)
@@ -611,7 +638,11 @@ class World(MiniGridEnv):
         next_cell = self.agent_pos + DIR_TO_VEC[DIR_TO_INT[direction]]
         if self.within_grid(Position(column=next_cell[0], row=next_cell[1])):
             next_cell_object = self.grid.get(*next_cell)
-            return not next_cell_object
+            if next_cell_object != None: 
+                if not isinstance(next_cell_object, list) and next_cell_object.type == "box":
+                    return True
+            else:
+                return not next_cell_object
         else:
             return False
 

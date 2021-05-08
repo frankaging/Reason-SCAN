@@ -367,9 +367,45 @@ class Grid:
         if self.grid[j * self.width + i] == None:
             self.grid[j * self.width + i] = v
         else:
-            old_v = self.grid[j * self.width + i]
-            if overlapping or old_v.can_object_overlap():
-                self.grid[j * self.width + i] = [old_v, v]
+            
+            # there are multiple cases
+            if v == None:
+                # we are removing some objects, this is likely due to that
+                # the object is moving!
+                old_v = self.grid[j * self.width + i]
+                
+                if isinstance(old_v, list):
+                    # Here you remove the non box type object!
+                    if old_v[0].type == "box":
+                        old_v = old_v[0] # we keep box
+                    else:
+                        old_v = old_v[1]
+                    self.grid[j * self.width + i] = old_v
+                else:
+                    if old_v.type == "box":
+                        pass # This must be the case that you are placing agent. Just fail through!
+                    else:
+                        self.grid[j * self.width + i] = None
+            else:
+                # there two cases
+                # if it is already a list, i am not sure if
+                # you can even add it.
+                old_v = self.grid[j * self.width + i]
+                if isinstance(old_v, list):
+                    # you cannot!
+                    assert false
+                else:
+                    if overlapping or old_v.can_object_overlap() or v.can_object_overlap():
+                        self.grid[j * self.width + i] = [old_v, v]
+            
+            # old_v = self.grid[j * self.width + i]
+            # if isinstance(old_v, list):
+            #     if old_v[0].type == "box":
+            #         old_v = old_v[1]
+            #     else:
+            #         old_v = old_v[0]
+            # if overlapping or old_v.can_object_overlap():
+            #     self.grid[j * self.width + i] = [old_v, v]
 
     def get(self, i, j):
         assert i >= 0 and i < self.width
@@ -483,10 +519,11 @@ class Grid:
                     continue
                 if isinstance(cell, list):
                     for sub_cell in cell:
-                        r.push()
-                        r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
-                        sub_cell.render(r)
-                        r.pop()
+                        if sub_cell is not None: # You know this can an agent as well! : )
+                            r.push()
+                            r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
+                            sub_cell.render(r)
+                            r.pop()
                 else:
                     r.push()
                     r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
@@ -668,7 +705,7 @@ class MiniGridEnv(gym.Env):
 
         return self.np_random.randint(low, high)
 
-    def place_obj(self, obj, top=None, size=None, reject_fn=None, max_tries=math.inf):
+    def place_obj(self, obj, top=None, size=None, reject_fn=None, max_tries=2):
         """
         Place an object at an empty position in the grid
 
@@ -703,9 +740,23 @@ class MiniGridEnv(gym.Env):
             ))
 
             # Don't place the object on top of another object
-            if self.grid.get(*pos) != None and not obj.can_object_overlap():
-                continue
-
+            if self.grid.get(*pos) != None:
+                exist_cell = self.grid.get(*pos)
+                if exist_cell is None:
+                    break
+                if isinstance(exist_cell, list):
+                    continue # We cannot place if there is a list meaning a box + something else!
+                if obj is not None:
+                    if not obj.can_object_overlap() and exist_cell.type != "box":
+                        continue
+                    else:
+                        break # meaning either the placing obj is a box, or exist object is a box!
+                else:
+                    if exist_cell.type != "box":
+                        continue
+                    else:
+                        break
+                    
             # Check if there is a filtering criterion
             if reject_fn and reject_fn(self, pos):
                 continue
@@ -795,6 +846,11 @@ class MiniGridEnv(gym.Env):
 
             # Get the contents of the cell in front of the agent
             fwd_cell = self.grid.get(*fwd_pos)
+            if isinstance(fwd_cell, list):
+                if fwd_cell[0].type == "box":
+                    fwd_cell = fwd_cell[1]
+                else:
+                    fwd_cell = fwd_cell[0] # This is for the box case!
             if fwd_cell == None or fwd_cell.can_overlap():
                 self.agent_pos = fwd_pos
             if fwd_cell != None and fwd_cell.type == 'goal':
@@ -805,6 +861,11 @@ class MiniGridEnv(gym.Env):
 
         # Pick up an object
         elif action == self.actions.pickup:
+            if isinstance(current_cell, list):
+                if current_cell[0].type == "box":
+                    current_cell = current_cell[1]
+                else:
+                    current_cell = current_cell[0]
             if current_cell.can_pickup():
                 if self.carrying is None:
                     self.carrying = current_cell
