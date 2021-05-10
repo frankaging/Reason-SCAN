@@ -374,6 +374,13 @@ class World(MiniGridEnv):
         sampled_position = random.sample(available_positions, 1).pop()
         return Position(row=sampled_position[0], column=sampled_position[1])
 
+    def sample_position_box(self, box_size) -> Position:
+        available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size-box_size+1)),
+                                                                            list(range(self.grid_size-box_size+1)))
+                               if (col, row) not in self._occupied_positions]
+        sampled_position = random.sample(available_positions, 1).pop()
+        return Position(row=sampled_position[0], column=sampled_position[1])
+    
     def min_distance_from_edge(self, position: Position):
         row_distance = min(self.grid_size - position.row, position.row)
         column_distance = min(self.grid_size - position.column, position.column)

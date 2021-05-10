@@ -475,6 +475,6 @@ class Grammer(object):
         if verb in self.vocabulary.get_transitive_verbs():
             verb_str = verb
         else:
-            ver_str = " ".join([verb, "to"])
-        output_str = ver_str + " " + " ".join(grounded_rel_clause) + " " + adverb
+            verb_str = " ".join([verb, "to"])
+        output_str = verb_str + " " + " ".join(grounded_rel_clause) + " " + adverb
         return output_str.strip() # when adverb is empty.

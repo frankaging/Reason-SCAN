@@ -1,3 +1,4 @@
+code/dataset/wandb/
 .DS_Store
 data-files/
 experiments/syntactic_dependency_compositional_splits-results/

@@ -150,6 +150,24 @@ class Simulator(object):
                 shape = self.object_vocabulary.sample_shape() # _exclude=mentioned_shapes
             else:
                 shape = self.object_vocabulary.sample_shape()
+
+        # Override size, color and shape based on relations.
+        # if not is_root:
+        #     # Go through the rel.
+        #     for pair, rel in rel_map.items():
+        #         if obj_grammer == pair[-1]:
+        #             if pair[0] in obj_placed_map.keys():
+        #                 # if this obj is acting as a child node
+        #                 # then have to complain with parent node
+        #                 if rel == "$SAME_SHAPE":
+        #                     shape = obj_placed_map[pair[0]].shape
+        #                 elif rel == "$SAME_COLOR":
+        #                     color = obj_placed_map[pair[0]].color
+        #                 elif rel == "$SAME_SIZE":
+        #                     size = obj_placed_map[pair[0]].size
+        #                 elif rel == "$IS_INSIDE":
+        #                    shape = "box" # Might never reach here.
+                
         return Object(color=color,size=size,shape=shape)
                     
     def sample_object_position(
@@ -164,7 +182,11 @@ class Simulator(object):
             return sampled_pos
                 
         for _ in range(retry_max):
-            obj_random_pos = self._world.sample_position()
+            if sampled_obj.shape != "box":
+                obj_random_pos = self._world.sample_position()
+            else:
+                obj_random_pos = self._world.sample_position_box(sampled_obj.size)
+
             row = obj_random_pos.row
             col = obj_random_pos.column
             for pair, rel in rel_map.items():
@@ -197,6 +219,8 @@ class Simulator(object):
                                     break
 
             proposed_position=Position(row=row, column=col)
+            # we need to resample the position for box.
+
             if sampled_obj.shape != "box":
                 if not self._world.position_taken(proposed_position):
                     return proposed_position
@@ -290,20 +314,22 @@ class Simulator(object):
         for pair, rel in distractors_rel_map.items():
             if rel == "$SAME_SHAPE":
                 # Update the src node shape information.
-                shape = distractors_sampled_obj_map[pair[1]].shape
-                distractors_sampled_obj_map[pair[0]] = Object(
-                    color=distractors_sampled_obj_map[pair[0]].color,
-                    size=distractors_sampled_obj_map[pair[0]].size,
-                    shape=shape
-                )
+                # shape = distractors_sampled_obj_map[pair[1]].shape
+                # distractors_sampled_obj_map[pair[0]] = Object(
+                #     color=distractors_sampled_obj_map[pair[0]].color,
+                #     size=distractors_sampled_obj_map[pair[0]].size,
+                #     shape=shape
+                # )
+                pass
             elif rel == "$SAME_COLOR":
                 # Update the src node color information.
-                color = distractors_sampled_obj_map[pair[1]].color
-                distractors_sampled_obj_map[pair[0]] = Object(
-                    color=color,
-                    size=distractors_sampled_obj_map[pair[0]].size,
-                    shape=distractors_sampled_obj_map[pair[0]].shape
-                )
+                # color = distractors_sampled_obj_map[pair[1]].color
+                # distractors_sampled_obj_map[pair[0]] = Object(
+                #     color=color,
+                #     size=distractors_sampled_obj_map[pair[0]].size,
+                #     shape=distractors_sampled_obj_map[pair[0]].shape
+                # )
+                pass
             elif rel == "$SAME_SIZE":
                 # Update the src node size information.
                 size = distractors_sampled_obj_map[pair[1]].size
@@ -385,6 +411,39 @@ class Simulator(object):
             )
             object_map[obj_grammer] = sampled_obj
         
+        # Next, we update all of them based on relations.
+        # Final pass, we need to change attributes of objects based
+        # on relations.
+        # Here, we only change size!
+        for pair, rel in rel_map.items():
+            if rel == "$SAME_SHAPE":
+                # Update the src node shape information.
+                shape = object_map[pair[1]].shape
+                object_map[pair[0]] = Object(
+                    color=object_map[pair[0]].color,
+                    size=object_map[pair[0]].size,
+                    shape=shape
+                )
+                pass
+            elif rel == "$SAME_COLOR":
+                # Update the src node color information.
+                color = object_map[pair[1]].color
+                object_map[pair[0]] = Object(
+                    color=color,
+                    size=object_map[pair[0]].size,
+                    shape=object_map[pair[0]].shape
+                )
+                pass
+            elif rel == "$SAME_SIZE":
+                # Update the src node size information.
+                size = object_map[pair[1]].size
+                object_map[pair[0]] = Object(
+                    color=object_map[pair[0]].color,
+                    size=size,
+                    shape=object_map[pair[0]].shape
+                )
+            elif rel == "$IS_INSIDE":
+                pass
             
         # Then, we will determine size bounds.
         special_shape_size_bound = {}
@@ -400,14 +459,14 @@ class Simulator(object):
             )
             
             if "$SIZE" in obj_pattern and "$COLOR" in obj_pattern:
+                special_shape = object_map[obj_grammer].color + " " + object_map[obj_grammer].shape
                 if object_map[obj_grammer].shape in special_shape_size_bound.keys():
                     # e.g., small circle exists
                     special_shape_size_bound[special_shape] = special_shape_size_bound[object_map[obj_grammer].shape]
                 else:
                     # e.g., small yellow circle
-                    special_shape = object_map[obj_grammer].color + " " + object_map[obj_grammer].shape
                     special_shape_size_bound[special_shape] = [small_size, big_size]
-            elif "$SIZE" in obj_pattern:
+            elif "$SIZE" in obj_pattern and not "$COLOR" in obj_pattern:
                 # e.g., small circle
                 # overwrite any existing bounds.
                 special_shape = object_map[obj_grammer].shape
@@ -457,26 +516,29 @@ class Simulator(object):
                 # If nothing exists in the special size map, then we don't need
                 # to alter the size.
                 updated_object_map[obj_grammer] = object_map[obj_grammer]
-                
+
         # Final pass, we need to change attributes of objects based
         # on relations.
+        # Here, we only change size!
         for pair, rel in rel_map.items():
             if rel == "$SAME_SHAPE":
                 # Update the src node shape information.
-                shape = updated_object_map[pair[1]].shape
-                updated_object_map[pair[0]] = Object(
-                    color=object_map[pair[0]].color,
-                    size=object_map[pair[0]].size,
-                    shape=shape
-                )
+                # shape = updated_object_map[pair[1]].shape
+                # updated_object_map[pair[0]] = Object(
+                #     color=object_map[pair[0]].color,
+                #     size=object_map[pair[0]].size,
+                #     shape=shape
+                #)
+                pass
             elif rel == "$SAME_COLOR":
                 # Update the src node color information.
-                color = updated_object_map[pair[1]].color
-                updated_object_map[pair[0]] = Object(
-                    color=color,
-                    size=object_map[pair[0]].size,
-                    shape=object_map[pair[0]].shape
-                )
+                # color = updated_object_map[pair[1]].color
+                # updated_object_map[pair[0]] = Object(
+                #     color=color,
+                #     size=object_map[pair[0]].size,
+                #     shape=object_map[pair[0]].shape
+                # )
+                pass
             elif rel == "$SAME_SIZE":
                 # Update the src node size information.
                 size = updated_object_map[pair[1]].size
@@ -633,9 +695,9 @@ class Simulator(object):
         
         distractor_switch_map = OrderedDict({
             "relation" : [],
-            "attribute" : [],
-            "isomorphism" : [], 
-            "random" : [],
+            "attribute" : False,
+            "isomorphism" : False, 
+            "random" : False,
         })
         relation_distractors_dicts = [{
             "distractor_metadata": {}
@@ -1479,6 +1541,11 @@ class Simulator(object):
                                 " " + sampled_world['obj_map'][obj_name].shape
                         else:
                             special_shape = sampled_world['obj_map'][obj_name].shape
+                        
+                        # We need to be a little careful when
+                        # dealing with abstract shape object
+                        # for example, big object -> small object.
+                            
                         if "small" in original_object_str:
                             distractor_size = special_shape_size_bound[special_shape][1]
                         elif "big" in original_object_str:
