@@ -393,19 +393,14 @@ class Grid:
                 old_v = self.grid[j * self.width + i]
                 if isinstance(old_v, list):
                     # you cannot!
-                    assert false
+                    assert False
                 else:
-                    if overlapping or old_v.can_object_overlap() or v.can_object_overlap():
+                    if old_v.type == "box" and v.type == "box":
+                        assert False
+                    if overlapping or old_v.type == "box" or v.type == "box":
                         self.grid[j * self.width + i] = [old_v, v]
-            
-            # old_v = self.grid[j * self.width + i]
-            # if isinstance(old_v, list):
-            #     if old_v[0].type == "box":
-            #         old_v = old_v[1]
-            #     else:
-            #         old_v = old_v[0]
-            # if overlapping or old_v.can_object_overlap():
-            #     self.grid[j * self.width + i] = [old_v, v]
+                    else:
+                        assert False
 
     def get(self, i, j):
         assert i >= 0 and i < self.width
@@ -742,18 +737,20 @@ class MiniGridEnv(gym.Env):
             # Don't place the object on top of another object
             if self.grid.get(*pos) != None:
                 exist_cell = self.grid.get(*pos)
-                if exist_cell is None:
-                    break
+                # All the following negative cases should never reach!
+                # otherwise you should debug your main sampling code.
                 if isinstance(exist_cell, list):
-                    continue # We cannot place if there is a list meaning a box + something else!
+                    assert False # you should not reach this point!
                 if obj is not None:
-                    if not obj.can_object_overlap() and exist_cell.type != "box":
-                        continue
+                    if exist_cell.type != "box" and obj.type != "box":
+                        assert False # you should not reach this point!
+                    elif exist_cell.type == "box" and obj.type == "box":
+                        assert False # you should not reach this point!
                     else:
-                        break # meaning either the placing obj is a box, or exist object is a box!
+                        break
                 else:
                     if exist_cell.type != "box":
-                        continue
+                        assert False # you should not reach this point!
                     else:
                         break
                     

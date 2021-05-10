@@ -340,7 +340,7 @@ class World(MiniGridEnv):
         else:
             raise ValueError("Trying to create an object shape {} that is not implemented.".format(object_spec.shape))
 
-    def position_taken(self, position: Position):
+    def position_taken(self, position: Position, condition="normal"):
         exist_cell = self.grid.get(position.column, position.row)
         if exist_cell is None:
             return False
@@ -349,9 +349,15 @@ class World(MiniGridEnv):
                 return True
             else:
                 if exist_cell.type == "box":
-                    return False
+                    if condition == "normal":
+                        return False
+                    elif condition == "box":
+                        return True # box cannot be on top of another box!
                 else:
-                    return True
+                    if condition == "box":
+                        return False # It is ok if you are placing a box!
+                    else:
+                        return True
         assert False
 
     def within_grid(self, position: Position):
@@ -380,6 +386,37 @@ class World(MiniGridEnv):
                                if (col, row) not in self._occupied_positions]
         sampled_position = random.sample(available_positions, 1).pop()
         return Position(row=sampled_position[0], column=sampled_position[1])
+    
+    def sample_position_complex(self, condition="normal", box_size=4, sample_one=True):
+        """
+        This is a complex position sampling methods, which is based on
+        your conditions. If this is a box, you need to pass in box
+        size to correctly sample a valid position.
+        
+        normal: this is a regular object sampling.
+        box: this is for a box type.
+        agent: this is for agent.
+        
+        if debug, we will return all positions, not just a single sampled one!
+        """
+
+        if condition == "normal":
+            available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size)),
+                                                                                list(range(self.grid_size)))]
+        elif condition == "box":
+            available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size-box_size+1)),
+                                                                                list(range(self.grid_size-box_size+1)))]
+        filtered_positions = []
+        for (row, col) in available_positions:
+            proposed_position = Position(row=row, column=col)
+            if not self.position_taken(proposed_position, condition=condition):
+                filtered_positions.append(proposed_position)
+        if not sample_one:
+            return filtered_positions
+        if len(filtered_positions) < 1:
+            return -1
+        sampled_position = random.sample(filtered_positions, 1).pop()
+        return sampled_position
     
     def min_distance_from_edge(self, position: Position):
         row_distance = min(self.grid_size - position.row, position.row)
@@ -419,16 +456,28 @@ class World(MiniGridEnv):
         if not self.within_grid(position):
             raise IndexError("Trying to place object '{}' outside of grid of size {}.".format(
                 object_spec.shape, self.grid_size))
+        
+        # If this is a box type, we need to make sure it is not overflowing to outside of the grid world.
+        if object_spec.shape == "box":
+            if 0 <= position.row < self.grid_size-object_spec.size+1 and 0 <= position.column < self.grid_size-object_spec.size+1:
+                pass
+            else:
+                raise IndexError("Trying to place a size={} box in row={}, col={} which is outside of grid of size {}.".format(
+                    object_spec.size, position.row, position.column, self.grid_size))
+        
         # Double box is not allowed here!
-        if self.position_taken(position) and object_spec.shape == "box" and self._occupy_by_box(position):
-            print("WARNING: attempt to place two boxes at location ({}, {}), but overlapping boxes not "
-                  "supported. Skipping object.".format(position.row, position.column))
-            return
+        if object_spec.shape == "box":
+            if self.position_taken(position, condition="box"):
+                print("WARNING: attempt to place two boxes at location ({}, {}), but overlapping boxes not "
+                      "supported. Skipping object.".format(position.row, position.column))
+                return -1
+                # raise IndexError("Trying to allocate two boxes in the same position. Sampling strategy has a bug!")
         # Object already placed at this location
-        if (self.position_taken(position) and object_spec.shape != "box" and not self._occupy_by_box(position)):
-            print("WARNING: attempt to place two objects at location ({}, {}), but overlapping objects not "
-                  "supported if it is for a box. Skipping object.".format(position.row, position.column))
-            return
+        else:
+            if self.position_taken(position, condition="normal"):
+                print("WARNING: attempt to place two objects at location ({}, {}), but overlapping objects not "
+                      "supported if it is for a box. Skipping object.".format(position.row, position.column))
+                raise IndexError("Trying to allocate two non-box objects in the same position. Sampling strategy has a bug!")
 
         object_vector = self._object_vocabulary.get_object_vector(shape=object_spec.shape, color=object_spec.color,
                                                                   size=object_spec.size)
