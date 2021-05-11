@@ -118,16 +118,18 @@ class Grammer(object):
         """
         size_pool = ["", self.SIZE_REGEX]
         color_pool = ["", self.COLOR_REGEX]
-        if root:
-            shape_pool = [self.SHAPE_REGEX, self.ABSTRACT_SHAPE_REGEX]
-        else:
-            shape_pool = [self.SHAPE_REGEX]
+        shape_pool = [self.SHAPE_REGEX, self.ABSTRACT_SHAPE_REGEX]
         # including self.ABSTRACT_SHAPE_REGEX is very ambitious!
         sampled_patterns = []
         for obj_comp in product(size_pool, 
                                 color_pool,
                                 shape_pool):
             sampled_pattern = []
+            if root: # root can be in simple form?
+                pass
+            else:
+                if obj_comp[0] == "" and obj_comp[1] == "":
+                    continue
             for part in obj_comp:
                 if part != "":
                     sampled_pattern += [part]
@@ -141,9 +143,11 @@ class Grammer(object):
         if object_pool == None:
             arbitrary_object = ['object'] if allow_arbitrary_object else []
             object_pool = vocabulary.get_nouns() + arbitrary_object
+        # We don't allow plain case
+        # They are not interesting other than adding in sampling difficulties!
         # plain
-        if not composition_only:
-            object_compositions += [(obj,) for obj in object_pool]
+        # if not composition_only:
+        #     object_compositions += [(obj,) for obj in object_pool]
         # comp-2-size
         if size_considered:
             for obj_comp in product(vocabulary.get_size_adjectives(), 
@@ -371,18 +375,30 @@ class Grammer(object):
                     for i in range(len(child_node)):
                         rel_map[(parent_node, child_node[i])] = splice_rel_p[i]
                     for pair_i, rel_i in rel_map.items():
-                        if rel_i == self.IS_INSIDE_REGEX:
-                            if self.ABSTRACT_SHAPE_REGEX in obj_pattern_map[pair_i[-1]]:
-                                valid = False # is inside of a box is a must.
+                        if rel_i == self.SAME_COLOR_REGEX:
+                            if self.COLOR_REGEX in obj_pattern_map[pair_i[-1]]:
+                                # We now don't allow these very simple cases:
+                                # for example:
+                                # XXX same color as the red square.
+                                # the model only need to learn simple parsing.
+                                valid = False
                                 break
-                            for pair_j, rel_j in rel_map.items():
-                                if pair_i[-1] == pair_j[0]: # child as the parent node
-                                    if rel_j != self.SAME_COLOR_REGEX:
-                                        valid = False # one constraint, isinside in the middle then the
-                                                      # following relation must be color. others do not
-                                                      # quite make sense!
-                                        break
-                            if not valid:
+                        if rel_i == self.SAME_SHAPE_REGEX:
+                            if not self.ABSTRACT_SHAPE_REGEX in obj_pattern_map[pair_i[-1]]:
+                                # We need to aovid this as well.
+                                # XXX same shape as the square, this is again
+                                # essentially cannot be true!
+                                valid = False
+                                break
+                                
+                             # we need be more restrict.
+                            
+                        if self.ABSTRACT_SHAPE_REGEX in obj_pattern_map[pair_i[-1]]:
+                            if rel_i != self.SAME_SHAPE_REGEX:
+                                # We need to aovid this as well.
+                                # XXX same shape as the square, this is again
+                                # essentially cannot be true!
+                                valid = False
                                 break
                     if not valid:
                         break
@@ -436,7 +452,24 @@ class Grammer(object):
         for perm in obj_adj_permuations:
             if len(perm) == len(set(perm)):
                 obj_perm = dict(zip(obj_list, perm))
-                obj_perms.append(obj_perm)
+                # Let us make the task a bit complicated!
+                # We cannot say
+                # red square that is in the same shape as blue square
+                # this is hard to sample and lead to low shape diversity!
+                
+                # To make it more straight forward
+                # let us simply don't allow shared shapes!
+                valid = True
+                for edge, rel in rel_map.items():
+                    if rel == "$SAME_SHAPE":
+                        assert "object" in obj_perm[edge[0]]
+                        assert "object" in obj_perm[edge[1]]
+                    else:
+                        if obj_perm[edge[0]].split(" ")[-1] == obj_perm[edge[1]].split(" ")[-1]:
+                            valid = False
+                            break
+                if valid:
+                    obj_perms.append(obj_perm)
         return obj_perms
         
     def repre_str_command(

@@ -150,91 +150,73 @@ class Simulator(object):
                 shape = self.object_vocabulary.sample_shape() # _exclude=mentioned_shapes
             else:
                 shape = self.object_vocabulary.sample_shape()
-
-        # Override size, color and shape based on relations.
-        # if not is_root:
-        #     # Go through the rel.
-        #     for pair, rel in rel_map.items():
-        #         if obj_grammer == pair[-1]:
-        #             if pair[0] in obj_placed_map.keys():
-        #                 # if this obj is acting as a child node
-        #                 # then have to complain with parent node
-        #                 if rel == "$SAME_SHAPE":
-        #                     shape = obj_placed_map[pair[0]].shape
-        #                 elif rel == "$SAME_COLOR":
-        #                     color = obj_placed_map[pair[0]].color
-        #                 elif rel == "$SAME_SIZE":
-        #                     size = obj_placed_map[pair[0]].size
-        #                 elif rel == "$IS_INSIDE":
-        #                    shape = "box" # Might never reach here.
                 
         return Object(color=color,size=size,shape=shape)
                     
     def sample_object_position(
         self, sampled_obj, root, obj_grammer, 
         rel_map, obj_placed_map, 
-        obj_position_map,
-        retry_max=10
+        obj_position_map
     ):
+        """
+        Return:
+        -1: No position can be sampled.
+        """
         # If it is the first node, we directly return.
+        if sampled_obj.shape != "box":
+            obj_random_pos = self._world.sample_position_complex(
+                condition="normal", sample_one=True
+            )
+        else:
+            obj_random_pos = self._world.sample_position_complex(
+                condition="box", box_size=sampled_obj.size, sample_one=True
+            )
         if obj_grammer == root:
-            sampled_pos = self._world.sample_position()
-            return sampled_pos
-                
-        for _ in range(retry_max):
-            if sampled_obj.shape != "box":
-                obj_random_pos = self._world.sample_position()
-            else:
-                obj_random_pos = self._world.sample_position_box(sampled_obj.size)
+            return obj_random_pos # for this round, the root node can be placed anywhere!
+        
+        # For some relations, we might need to resample positions!
+        for pair, rel in rel_map.items():
+            if obj_grammer == pair[-1]:
+                if not pair[0] in obj_placed_map.keys():
+                    assert False # this should never be the case! the position sampling in from top to bottom!
 
-            row = obj_random_pos.row
-            col = obj_random_pos.column
-            for pair, rel in rel_map.items():
-                if obj_grammer == pair[-1]:
-                    if pair[0] in obj_placed_map.keys():
-                        # if this obj is acting as a child node
-                        # then have to complain with parent node
-                        if rel == "$SAME_ROW":
-                            row = obj_position_map[pair[0]].row
-                        elif rel == "$SAME_COLUMN":
-                            col = obj_position_map[pair[0]].column
-                        elif rel == "$IS_INSIDE":
-                            # we need to make sure enclosure
-                            size = sampled_obj.size
-                            row_higher = min(obj_position_map[pair[0]].row, self.grid_size-size)
-                            col_higher = min(obj_position_map[pair[0]].column, self.grid_size-size)
-                            row_lower = max(obj_position_map[pair[0]].row-(size-1), 0)
-                            col_lower = max(obj_position_map[pair[0]].column-(size-1), 0)
-                            random_positions = []
-                            for i in range(row_lower, row_higher+1):
-                                for j in range(col_lower, col_higher+1):
-                                    random_positions.append((i,j))
-                            random.shuffle(random_positions)
-                            for position in random_positions:
-                                # consider the size and boundary as well
-                                row = position[0]
-                                col = position[1]
-                                proposed_position=Position(row=row, column=col)
-                                if not self._world.position_taken(proposed_position):
-                                    break
+                # if this obj is acting as a child node
+                # then have to complain with parent node
+                if rel == "$SAME_ROW":
+                    row = obj_position_map[pair[0]].row
+                    for i in range(0, self.grid_size):
+                        proposed_position = Position(row=row, column=i)
+                        if not self._world.position_taken(proposed_position, condition="normal"):
+                            return proposed_position
+                    return -1 # too many objs
+                if rel == "$SAME_COLUMN":
+                    col = obj_position_map[pair[0]].column
+                    for i in range(0, self.grid_size):
+                        proposed_position = Position(row=i, column=col)
+                        if not self._world.position_taken(proposed_position, condition="normal"):
+                            return proposed_position
+                    return -1 # too many objs
+                elif rel == "$IS_INSIDE":
+                    # we need to make sure enclosure
+                    assert sampled_obj.shape == "box"
+                    size = sampled_obj.size
+                    potential_positions = []
+                    row = obj_position_map[pair[0]].row
+                    col = obj_position_map[pair[0]].column
+                    for i in range(0, self.grid_size-size+1):
+                        for j in range(0, self.grid_size-size+1):
+                            # we need to cover the is inside obj
+                            if row >= i and row < i + sampled_obj.size and \
+                                col >= j and col < j + sampled_obj.size:
+                                proposed_position = Position(row=i, column=j)
+                                if not self._world.position_taken(proposed_position, condition="box"):
+                                    potential_positions.append(Position(row=i, column=j))
+                    random.shuffle(potential_positions)
+                    if len(potential_positions) < 1:
+                        return -1
+                    return potential_positions[0]
 
-            proposed_position=Position(row=row, column=col)
-            # we need to resample the position for box.
-
-            if sampled_obj.shape != "box":
-                if not self._world.position_taken(proposed_position):
-                    return proposed_position
-            else:
-                overlap_box = False
-                for obj_str, obj in obj_placed_map.items():
-                    if obj.shape == "box":
-                        if obj_position_map[obj_str].row == row and \
-                            obj_position_map[obj_str].column == col:
-                            overlap_box = True
-                            break
-                if not overlap_box:
-                    return proposed_position
-        return -1 # Fail to propose a valid position.
+        return obj_random_pos
     
     def sample_random_object_spec(
         self, 
@@ -313,22 +295,8 @@ class Simulator(object):
         # 2. Update it using relationships.
         for pair, rel in distractors_rel_map.items():
             if rel == "$SAME_SHAPE":
-                # Update the src node shape information.
-                # shape = distractors_sampled_obj_map[pair[1]].shape
-                # distractors_sampled_obj_map[pair[0]] = Object(
-                #     color=distractors_sampled_obj_map[pair[0]].color,
-                #     size=distractors_sampled_obj_map[pair[0]].size,
-                #     shape=shape
-                # )
                 pass
             elif rel == "$SAME_COLOR":
-                # Update the src node color information.
-                # color = distractors_sampled_obj_map[pair[1]].color
-                # distractors_sampled_obj_map[pair[0]] = Object(
-                #     color=color,
-                #     size=distractors_sampled_obj_map[pair[0]].size,
-                #     shape=distractors_sampled_obj_map[pair[0]].shape
-                # )
                 pass
             elif rel == "$SAME_SIZE":
                 # Update the src node size information.
@@ -341,6 +309,7 @@ class Simulator(object):
             elif rel == "$IS_INSIDE":
                 pass # Do nothing!
 
+        placed_dis_grammer = []
         for dis_grammer, sampled_dis in distractors_sampled_obj_map.items():
             # 2. Place on the world map.
             sampled_pos = self.sample_object_position(
@@ -350,14 +319,18 @@ class Simulator(object):
             )
 
             if sampled_dis == -1 or sampled_pos == -1:
+                # We allow partial placement as they add difficulties!
                 return False
 
-            self._world.place_object(
+            return_code = self._world.place_object(
                 sampled_dis, 
                 position=sampled_pos, target=False # Distractor is never the target!
             )
+            if return_code == -1:
+                assert False # Due to our design, this should never happen!
             obj_placed_map[dis_grammer] = sampled_dis
             obj_position_map[dis_grammer] = sampled_pos
+            
         return True
     
     def sample_situations_from_grounded_grammer(
@@ -522,22 +495,8 @@ class Simulator(object):
         # Here, we only change size!
         for pair, rel in rel_map.items():
             if rel == "$SAME_SHAPE":
-                # Update the src node shape information.
-                # shape = updated_object_map[pair[1]].shape
-                # updated_object_map[pair[0]] = Object(
-                #     color=object_map[pair[0]].color,
-                #     size=object_map[pair[0]].size,
-                #     shape=shape
-                #)
                 pass
             elif rel == "$SAME_COLOR":
-                # Update the src node color information.
-                # color = updated_object_map[pair[1]].color
-                # updated_object_map[pair[0]] = Object(
-                #     color=color,
-                #     size=object_map[pair[0]].size,
-                #     shape=object_map[pair[0]].shape
-                # )
                 pass
             elif rel == "$SAME_SIZE":
                 # Update the src node size information.
@@ -562,7 +521,7 @@ class Simulator(object):
             )
             
             if sampled_obj == -1 or sampled_pos == -1:
-                return -1 # Fail to sample.
+                assert False # we can assert false as it is impossible!
         
             self._world.place_object(
                 sampled_obj, 
@@ -713,11 +672,14 @@ class Simulator(object):
             full_relation_set=True
         else:
             full_relation_set=False
+            
+        obj_drafted_count = len(obj_placed_map)
         if include_relation_distractor:
             """
             Relation Distractors: Count=3*n, at max 6.
+            Relation Distractors (fast): Count=2*n, at max 4.
             """
-            relation_distractors_dicts = self.sample_distractor_grammer_by_relation(
+            relation_distractors_dicts = self.sample_distractor_grammer_by_relation_fast(
                 grammer_pattern, 
                 obj_pattern_map, 
                 rel_map, 
@@ -730,7 +692,9 @@ class Simulator(object):
                 pass # Size distractor is not applicable 
             else:
                 distractor_switch = []
+                is_full_relation = True
                 for distractors_dict in relation_distractors_dicts:
+                    obj_drafted_count += len(distractors_dict["obj_map"])
                     succeed = self.place_distractor_from_dict(
                         distractors_dict, 
                         obj_placed_map, 
@@ -742,20 +706,16 @@ class Simulator(object):
                         # need to be bounded by global constraints.
                     )
                     if succeed:
-                        distractor_switch += [True]
+                        distractor_switch_map["relation"].append(True)
                     else:
-                        distractor_switch += [False]
-                distractor_switch_map["relation"] = distractor_switch
-                    
+                        distractor_switch_map["relation"].append(False)
+
         if include_attribute_distractor:
             """
             Attribution Distractors: Count=3-6.
             """
             # If the command is small, we can overwrite this
-            if len(rel_map) <= 1:
-                full_set = True
-            else:
-                full_set = not full_relation_set
+            full_set = not full_relation_set
             attribute_distractors_dicts = self.sample_distractor_grammer_by_attribute(
                 grammer_pattern, 
                 obj_pattern_map, 
@@ -763,12 +723,13 @@ class Simulator(object):
                 obj_map, 
                 temp_sampled_world,
                 special_shape_size_bound,
-                obj_base_count=len(obj_placed_map),
+                obj_base_count=obj_drafted_count, # This is important, as previous draft may success but placement can fail!
                 full_set=full_set,
             )
             if len(attribute_distractors_dicts) == 0:
                 pass # Size distractor is not applicable 
             else:
+                obj_drafted_count += len(attribute_distractors_dicts[0]["obj_map"])
                 succeed = self.place_distractor_from_dict(
                     attribute_distractors_dicts[0], 
                     obj_placed_map, 
@@ -780,9 +741,10 @@ class Simulator(object):
                     # need to be bounded by global constraints.
                 )
                 if succeed:
-                    distractor_switch_map["attribute"] = True # If one time it is true, it is true.
+                    if attribute_distractors_dicts[0]["grammer_pattern"] != "DUMMY":
+                        distractor_switch_map["attribute"] = True # If one time it is true, it is true.
                 else:
-                    return -1 # Maybe this is too restrict? Let us think about it!
+                    pass
         
         if include_isomorphism_distractor:
             """
@@ -794,11 +756,12 @@ class Simulator(object):
                 rel_map, 
                 obj_map, 
                 temp_sampled_world,
-                obj_base_count=len(obj_placed_map)
+                obj_base_count=obj_drafted_count # This is important, as previous draft may success but placement can fail!
             )
             if len(isomorphism_distractors_dicts) == 0:
                 pass # Size distractor is not applicable 
             else:
+                obj_drafted_count += len(isomorphism_distractors_dicts[0]["obj_map"])
                 succeed = self.place_distractor_from_dict(
                     isomorphism_distractors_dicts[0], 
                     obj_placed_map, 
@@ -811,18 +774,6 @@ class Simulator(object):
                 )
                 if succeed:
                     distractor_switch_map["isomorphism"] = True
-        
-        if distractor_switch_map["relation"]:
-            for k, v in relation_distractors_dicts[0]["obj_pattern_map"].items():
-                obj_pattern_map[k] = v
-        
-        if distractor_switch_map["attribute"]:
-            for k, v in attribute_distractors_dicts[0]["obj_pattern_map"].items():
-                obj_pattern_map[k] = v
-        
-        if distractor_switch_map["isomorphism"]:
-            for k, v in isomorphism_distractors_dicts[0]["obj_pattern_map"].items():
-                obj_pattern_map[k] = v
         
         # Probably never need this!
         """
@@ -841,7 +792,7 @@ class Simulator(object):
             else:
                 n_distractor = min(4, self.n_object_max-len(obj_placed_map)) # at max 2 random, how about?
                 n_random_distractor = n_distractor
-                core_obj_count = len(obj_placed_map)
+                core_obj_count = obj_drafted_count
                 for i in range(0, n_distractor):
                     distractor_idx = core_obj_count+i
                     distractor_name = f"$OBJ_{distractor_idx}"
@@ -874,7 +825,15 @@ class Simulator(object):
                             shape=sampled_distractor.shape
                         )
                     
-                    sampled_dis_pos = self._world.sample_position()
+                    if sampled_distractor.shape == "box":
+                        sampled_dis_pos = self._world.sample_position_complex(
+                            condition="box", box_size=sampled_distractor.size, sample_one=True
+                        )
+                    else:
+                        sampled_dis_pos = self._world.sample_position_complex(
+                            condition="normal", sample_one=True
+                        )
+                    
                     self._world.place_object(
                         sampled_distractor, 
                         position=sampled_dis_pos, target=False
@@ -891,7 +850,9 @@ class Simulator(object):
                     ])
                 distractor_switch_map["random"] = True
 
-        agent_position = self._world.sample_position()
+        agent_position = self._world.sample_position_complex(
+                            condition="normal", sample_one=True
+                        )
         self._world.place_agent_at(agent_position)
         if is_plot:
             _ = self._world.render_simple()
@@ -905,9 +866,27 @@ class Simulator(object):
             "referred_obj" : referred_obj,
             "situation" : situation_snapshot, 
             "distractor_switch_map" : distractor_switch_map,
-            "relation_distractor_metadata" : [md["distractor_metadata"] for md in relation_distractors_dicts],
-            "attribute_distractor_metadata" : [md["distractor_metadata"] for md in attribute_distractors_dicts],
-            "isomorphism_distractor_metadata" : [md["distractor_metadata"] for md in isomorphism_distractors_dicts],
+            "relation_distractor_metadata" : [
+                {
+                    "distractor_metadata": md["distractor_metadata"],
+                    # "obj_map": md["obj_map"],
+                    # "rel_map": md["rel_map"],
+                } for md in relation_distractors_dicts
+            ],
+            "attribute_distractor_metadata" : [
+                {
+                    "distractor_metadata": md["distractor_metadata"],
+                    # "obj_map": md["obj_map"],
+                    # "rel_map": md["rel_map"],
+                } for md in attribute_distractors_dicts
+            ],
+            "isomorphism_distractor_metadata" : [
+                {
+                    "distractor_metadata": md["distractor_metadata"],
+                    # "obj_map": md["obj_map"],
+                    # "rel_map": md["rel_map"],
+                } for md in isomorphism_distractors_dicts
+            ],
             "random_distractor_metadata" : [random_distractor_metadata],
             "n_random_distractor" : n_random_distractor
         }
@@ -1002,7 +981,89 @@ class Simulator(object):
                 new_obj_name_right = edge[1]
             distractor_rel_map_snapped[(new_obj_name_left, new_obj_name_right)] = item
         return distractor_rel_map_snapped
-    
+
+    def sample_distractor_grammer_by_relation_fast(
+        self, 
+        referent_grammer_pattern, 
+        referent_obj_pattern_map,
+        referent_rel_map,
+        referent_obj_map, 
+        sampled_world,
+        obj_base_count=0,
+        full_set=True
+    ):
+        """
+        You can choose between two versions.
+        In this fast version, we only sample objects for the 
+        selected edge.
+        """
+        distractors_dicts = []
+        # We first collect all the relations
+        relation_edges = []
+        for edge, relation in referent_rel_map.items():
+            # I don't want to sample box again
+            # this will add too many box at the end!
+            relation_edges.append(edge)
+        random.shuffle(relation_edges)
+        if full_set:
+            pass
+        else:
+            relation_edges = relation_edges[:1] # select only the first element.
+        
+        existing_relations = set([v for k, v in referent_rel_map.items()])
+
+        for selected_leaf_edge in relation_edges:
+
+            distractor_metadata = {
+                "edge" : selected_leaf_edge,
+                "relation_old_type" : referent_rel_map[selected_leaf_edge],
+                "full_set" : full_set,
+            }
+
+            distractor_size_map = {}
+            # First, let us make copies.
+            distractor_grammer_pattern = "$OBJ_0 ^ $OBJ_1"
+            distractor_obj_pattern_map = {}
+            node_left = selected_leaf_edge[0]
+            node_right = selected_leaf_edge[1]
+
+            distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map[node_left]
+            distractor_obj_pattern_map["$OBJ_1"] = referent_obj_pattern_map[node_right]
+            distractor_rel_map = OrderedDict({})
+            distractor_rel_map[("$OBJ_0", "$OBJ_1")] = referent_rel_map[selected_leaf_edge]
+            distractor_obj_map = {}
+            distractor_obj_map["$OBJ_0"] = referent_obj_map[node_left]
+            distractor_obj_map["$OBJ_1"] = referent_obj_map[node_right]
+            
+            # We need to increment the object counters.
+            distractors_dicts += [{
+                                    "grammer_pattern" : self.snap_pattern_to_referent_map(
+                                        distractor_grammer_pattern,
+                                        obj_base_count
+                                    ),
+                                    "obj_pattern_map" : self.snap_object_map_to_referent_map(
+                                        distractor_obj_pattern_map,
+                                        obj_base_count
+                                    ),
+                                    "rel_map" : self.snap_relation_map_to_referent_map(
+                                        distractor_rel_map,
+                                        obj_base_count
+                                    ),
+                                    "obj_map" : self.snap_object_map_to_referent_map(
+                                        distractor_obj_map,
+                                        obj_base_count
+                                    ),
+                                    "size_map" : self.snap_object_map_to_referent_map(
+                                        distractor_size_map,
+                                        obj_base_count
+                                    ),
+                                    "distractor_metadata" : distractor_metadata
+                                }]
+            obj_base_count += len(distractor_obj_pattern_map)
+
+        return distractors_dicts
+            
+            
     def sample_distractor_grammer_by_relation(
         self, 
         referent_grammer_pattern, 
@@ -1033,6 +1094,7 @@ class Simulator(object):
             relation_edges = relation_edges[:1] # select only the first element.
         
         existing_relations = set([v for k, v in referent_rel_map.items()])
+        # print(referent_rel_map)
         for selected_leaf_edge in relation_edges:
 
             # First, let us make copies.
@@ -1056,12 +1118,12 @@ class Simulator(object):
                 new_rels = ["$SAME_ROW", "$SAME_COLUMN", "$SAME_SHAPE", "$SAME_COLOR", "$SAME_SIZE", "$IS_INSIDE"]
                 new_rels = set(new_rels) - existing_relations # make this very strict!
                 # There are something else do not make sense to sample!
-                if "$SIZE" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
-                    new_rels -= set(["$SAME_SIZE"])
-                if "$COLOR" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
-                    new_rels -= set(["$SAME_COLOR"])
-                if "$SHAPE" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
-                    new_rels -= set(["$SAME_SHAPE"])
+                # if "$SIZE" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
+                #     new_rels -= set(["$SAME_SIZE"])
+                # if "$COLOR" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
+                #     new_rels -= set(["$SAME_COLOR"])
+                # if "$SHAPE" in distractor_obj_pattern_map[selected_leaf_edge[0]]:
+                #    new_rels -= set(["$SAME_SHAPE"])
                 new_rel = random.choice(list(new_rels))
                 existing_relations.add(new_rel)
                 distractor_metadata["relation_new_type"] = new_rel
@@ -1152,6 +1214,9 @@ class Simulator(object):
             if obj_name == "$OBJ_0":
                 continue # We need to sample distractors of object 0, thus, we keep it intact!
             obj_descriptors = obj_str.split(" ")
+            # if this is a box, we don't swap it
+            if "box" in obj_descriptors:
+                continue
             if "object" in obj_descriptors:
                 # "object" itself is not shufflable!
                 if len(obj_descriptors) > 1:
@@ -1342,15 +1407,29 @@ class Simulator(object):
         distractor_obj_pattern_map = copy.deepcopy(referent_obj_pattern_map)
         distractor_rel_map = copy.deepcopy(referent_rel_map)
         distractor_obj_map = copy.deepcopy(referent_obj_map)
+        
+        # Let us do some pre-checks
+        # If there are two boxes already
+        # Let us stop sampling boxes!
+        box_count = 0
+        for obj_name, obj in sampled_world['obj_map'].items():
+            if obj.shape == "box":
+                box_count += 1
+        if box_count >= 2:
+            full_set = False
+        
         # We may need to enforce the size of the distractor due to size descriptors!
         distractor_size_map = OrderedDict({})
         sizing_covered = []
         if full_set:
             obj_pool = []
             for obj_name, obj_grammer in referent_obj_pattern_map.items():
-                if obj_grammer == "$ABS_SHAPE":
+                if "$ABS_SHAPE" in obj_grammer or "box" in distractor_obj_map[obj_name]:
                     continue
                 obj_pool += [obj_name]
+            # there is a case where, we cannot do anything with this!
+            if len(obj_pool) < 1:
+                return [] # We simply don't have enough objects to do this.
             obj_selected = random.choice(obj_pool)
             attribute_pool = referent_obj_pattern_map[obj_selected].split(" ")
             attribute_pool = list(set(attribute_pool)-set(["$ABS_SHAPE"]))
@@ -1365,6 +1444,7 @@ class Simulator(object):
                 sizing_covered.append(obj_selected)
                 obj_name = obj_selected
                 original_object_str = distractor_obj_map[obj_name]
+                obj_grammer = distractor_obj_pattern_map[obj_name]
                 original_object = sampled_world['obj_map'][obj_name]
                 original_object_size = original_object.size
                 if "$COLOR" in obj_grammer:
@@ -1373,6 +1453,7 @@ class Simulator(object):
                         " " + sampled_world['obj_map'][obj_name].shape
                 else:
                     special_shape = sampled_world['obj_map'][obj_name].shape
+                
                 if "small" in original_object_str:
                     distractor_size = special_shape_size_bound[special_shape][1]
                 elif "big" in original_object_str:
