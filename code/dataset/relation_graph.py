@@ -22,6 +22,9 @@ from grammer import *
 from simulator import *
 
 import networkx as nx
+from networkx.algorithms import isomorphism
+from networkx import DiGraph
+from networkx import line_graph
 
 class ReaSCANGraph(object):
     """
@@ -348,10 +351,98 @@ class ReaSCANGraph(object):
 
         return determiner_map
     
+    def find_referred_object_super_fast(self, relation_pattern, referred_object="$OBJ_0", debug=False):
+        """
+        We need this super fast algorithm to do pattern matching.
+        Otherwise, who problem becomes unscalable!
+        
+        Note that this only works for a fixed pattern searching,
+        which is:
+        $OBJ_0 ^ $OBJ_1 & $OBJ_2
+        """
+        G = self.G_full.copy()
+        G_to_plot = self.G.copy()
+        sub_G = relation_pattern.G_full.copy()
+        
+        sub_G_node_attr_map = {}
+        rel_reverse_map = {}
+        for edge in sub_G.edges(data=True):
+            if edge[2]["type"] in ["$SAME_ROW", "$SAME_COLUMN", 
+                                   "$SAME_SHAPE", "$SAME_COLOR", 
+                                   "$SAME_SIZE", "$IS_INSIDE"]:
+
+                if edge[0] in sub_G_node_attr_map.keys():
+                    sub_G_node_attr_map[edge[0]].add(edge[2]["type"])
+                else:
+                    sub_G_node_attr_map[edge[0]] = set([edge[2]["type"]])
+                child_node = edge[1] if edge[0] == "$OBJ_0" else edge[0]
+                if child_node in rel_reverse_map.keys():
+                    assert rel_reverse_map[child_node] == edge[2]["type"] # safe-belt
+                rel_reverse_map[child_node] = edge[2]["type"]
+            else:                    
+                if edge[0] in sub_G_node_attr_map.keys():
+                    sub_G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
+                else:
+                    sub_G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
+
+        assert len(rel_reverse_map) == 2
+        
+        G_node_attr_map = {}
+        G_nbr_map = {}
+        G_edge_relation_map = {}
+        for edge in G.edges(data=True):
+            if edge[2]["type"] in ["$SAME_ROW", "$SAME_COLUMN", 
+                                   "$SAME_SHAPE", "$SAME_COLOR", 
+                                   "$SAME_SIZE", "$IS_INSIDE"]:
+                if edge[0] in G_node_attr_map.keys():
+                    G_node_attr_map[edge[0]].add(edge[2]["type"])
+                else:
+                    G_node_attr_map[edge[0]] = set([edge[2]["type"]])
+                if edge[0] in G_nbr_map.keys():
+                    G_nbr_map[edge[0]].add(edge[1])
+                else:
+                    G_nbr_map[edge[0]] = set([edge[1]])
+                if (edge[0], edge[1]) in G_edge_relation_map.keys():
+                    G_edge_relation_map[(edge[0], edge[1])].add(edge[2]["type"])
+                else:
+                    G_edge_relation_map[(edge[0], edge[1])] = set([edge[2]["type"]])
+            else:
+                if edge[0] in G_node_attr_map.keys():
+                    G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
+                else:
+                    G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
+        
+        matched_pivot_node = set([])
+        for node_name, attr_set in G_node_attr_map.items():
+            if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                # Now, we just need to find 2 nbr nodes matchs $OBJ_1 and $OBJ_2 attributes at
+                # the same time.
+                match_result_map = {
+                    "$OBJ_1" : set([]), 
+                    "$OBJ_2" : set([]), 
+                }
+                for nbr in G_nbr_map[node_name]:
+                    if rel_reverse_map["$OBJ_1"] in G_edge_relation_map[(node_name, nbr)]:
+                        if len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
+                            # we have a match for OBJ_1
+                            match_result_map["$OBJ_1"].add(nbr)
+                    if rel_reverse_map["$OBJ_2"] in G_edge_relation_map[(node_name, nbr)]:
+                        if len(sub_G_node_attr_map["$OBJ_2"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_2"]):
+                            # we have a match for OBJ_2
+                            match_result_map["$OBJ_2"].add(nbr)
+                
+                if len(match_result_map["$OBJ_1"]) > 0 and len(match_result_map["$OBJ_2"]) > 0:
+                    if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"])) > 1:
+                        matched_pivot_node.add(node_name)
+        return matched_pivot_node
+
+
     def find_referred_object(self, relation_pattern, referred_object="$OBJ_0", debug=False):
-        from networkx.algorithms import isomorphism
-        from networkx import DiGraph
-        from networkx import line_graph
+        """
+        This algorithm works for any subtree matching,
+        we use the above one to speed up in our case.
+        This is a NP-hard problem after all...
+        """
         G = self.G_full.copy()
         G_to_plot = self.G.copy()
         sub_G = relation_pattern.G_full.copy()
