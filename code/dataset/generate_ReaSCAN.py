@@ -20,7 +20,10 @@ import random
 import hashlib
 import pathlib
 import json
+import matplotlib as plt
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+os.environ['QT_QPA_PLATFORM']='offscreen'
 plt.rcParams["font.family"] = "DejaVu Serif"
 font = {'family' : 'DejaVu Serif',
         'size'   : 20}
@@ -447,9 +450,9 @@ if __name__ == "__main__":
         args.grid_size=6
         args.n_object_max=10
         args.seed=42
-        args.date="2021-05-07"
-        args.per_command_world_retry_max=100
-        args.per_command_world_target_count=30
+        args.date="2021-05-11"
+        args.per_command_world_retry_max=200
+        args.per_command_world_target_count=50
         args.resumed_from_file_path=""
         args.is_tensorboard=True # Let us try this!
         args.output_dir="../../data-files/ReaSCAN-compositional/"
@@ -459,7 +462,7 @@ if __name__ == "__main__":
     
     # TODO: add these to args.
     logging_interval = 10
-    save_interal = 10
+    save_interal = 200
     
     logger.info("Generating ReaSCAN with following parameters: ")
     logger.info(args)
@@ -487,6 +490,8 @@ if __name__ == "__main__":
         run = wandb.init(project="ReaSCAN", entity="wuzhengx")
         run_name = wandb.run.name
         wandb.config.update(args)
+    else:
+        wandb = None
 
     random.seed(seed)
     np.random.seed(seed)
@@ -665,76 +670,56 @@ if __name__ == "__main__":
                 d_attribute_ratio = 1.0*d_attribute_count/denom
                 d_iso_ratio = 1.0*d_iso_count/denom
                 d_random_ratio = 1.0*d_random_count/denom
+                global_success_ratio = 1.0*success_step/global_step
                 # logging some very useful information to wandb if avaliable!
                 if is_tensorboard:
                     if (global_step%logging_interval) == 0:
-                        global_success_ratio = 1.0*success_step/global_step
                         wandb.log({'global_success_ratio': global_success_ratio, 'global_step': global_step})
                         wandb.log({'current_example_count': success_step, 'global_step': global_step})
-                        
                         wandb.log({'d_full_relation_ratio': d_full_relation_ratio, 'global_step': global_step})
                         wandb.log({'d_relation_ratio': d_relation_ratio, 'global_step': global_step})
                         wandb.log({'d_attribute_ratio': d_attribute_ratio, 'global_step': global_step})
                         wandb.log({'d_iso_ratio': d_iso_ratio, 'global_step': global_step})
                         wandb.log({'d_random_ratio': d_random_ratio, 'global_step': global_step})  
                 else:
-                    logger.info({'global_success_ratio': global_success_ratio, 'global_step': global_step})
-                    logger.info({'current_example_count': success_step, 'global_step': global_step})
-
-                    logger.info({'d_full_relation_ratio': d_full_relation_ratio, 'global_step': global_step})
-                    logger.info({'d_relation_ratio': d_relation_ratio, 'global_step': global_step})
-                    logger.info({'d_attribute_ratio': d_attribute_ratio, 'global_step': global_step})
-                    logger.info({'d_iso_ratio': d_iso_ratio, 'global_step': global_step})
-                    logger.info({'d_random_ratio': d_random_ratio, 'global_step': global_step})
+                    if (global_step%(logging_interval*10)) == 0:
+                        logger.info({'global_success_ratio': global_success_ratio, 'global_step': global_step})
+                        logger.info({'current_example_count': success_step, 'global_step': global_step})
+                        logger.info({'d_full_relation_ratio': d_full_relation_ratio, 'global_step': global_step})
+                        logger.info({'d_relation_ratio': d_relation_ratio, 'global_step': global_step})
+                        logger.info({'d_attribute_ratio': d_attribute_ratio, 'global_step': global_step})
+                        logger.info({'d_iso_ratio': d_iso_ratio, 'global_step': global_step})
+                        logger.info({'d_random_ratio': d_random_ratio, 'global_step': global_step})
                     
                 if mode == "demo":
-                    sampling_strategy = "demo"
                     sampled_world = simulator.sample_situations_from_grounded_grammer(
                         copy.deepcopy(grammer_pattern), 
                         copy.deepcopy(obj_pattern_map), 
                         copy.deepcopy(rel_map), 
                         copy.deepcopy(obj_map),
                         is_plot=False,
-                        include_relation_distractor=False, 
+                        include_relation_distractor=True, 
                         include_attribute_distractor=True, 
                         include_isomorphism_distractor=False, 
                         include_random_distractor=False,
-                        full_relation_probability=1.0,
+                        full_relation_probability=0.5,
                         debug=False
                     ) # This is the minimum settings! You need to turn on attribute always!
                 else:
                     # Sample a shapeWorld!
-                    if "object" in command_struct["obj_map"][root]:
-                        sampling_strategy = "obscure"
-                        # The following settings seems to be reasonable for this case!
-                        sampled_world = simulator.sample_situations_from_grounded_grammer(
-                            copy.deepcopy(grammer_pattern), 
-                            copy.deepcopy(obj_pattern_map), 
-                            copy.deepcopy(rel_map), 
-                            copy.deepcopy(obj_map),
-                            is_plot=False,
-                            include_relation_distractor=True, 
-                            include_attribute_distractor=True, 
-                            include_isomorphism_distractor=False, 
-                            include_random_distractor=True,
-                            full_relation_probability=0.5, # 0.5 seems to work as well!
-                            debug=False
-                        )
-                    else:
-                        sampling_strategy = "complete"
-                        sampled_world = simulator.sample_situations_from_grounded_grammer(
-                            copy.deepcopy(grammer_pattern), 
-                            copy.deepcopy(obj_pattern_map), 
-                            copy.deepcopy(rel_map), 
-                            copy.deepcopy(obj_map),
-                            is_plot=False,
-                            include_relation_distractor=True, 
-                            include_attribute_distractor=True, 
-                            include_isomorphism_distractor=True, 
-                            include_random_distractor=True,
-                            full_relation_probability=0.5,
-                            debug=False
-                        )
+                    sampled_world = simulator.sample_situations_from_grounded_grammer(
+                        copy.deepcopy(grammer_pattern), 
+                        copy.deepcopy(obj_pattern_map), 
+                        copy.deepcopy(rel_map), 
+                        copy.deepcopy(obj_map),
+                        is_plot=False,
+                        include_relation_distractor=True, 
+                        include_attribute_distractor=True, 
+                        include_isomorphism_distractor=True, 
+                        include_random_distractor=True,
+                        full_relation_probability=0.5, # 0.5 seems to work as well!
+                        debug=False
+                    )
 
                 # Validate the world is valid!
                 graph = ReaSCANGraph(
@@ -745,6 +730,7 @@ if __name__ == "__main__":
                     referred_object=sampled_world["referred_obj"],
                     debug=False
                 )
+                
                 pattern_graph = ReaSCANGraph(
                     objects=obj_map, 
                     object_patterns=None,
@@ -753,7 +739,8 @@ if __name__ == "__main__":
                     referred_object='$OBJ_0', 
                     debug=False
                 )
-                potential_referent_target = graph.find_referred_object(
+                
+                potential_referent_target = graph.find_referred_object_super_fast(
                     pattern_graph, referred_object='$OBJ_0', 
                     debug=False
                 )
@@ -798,7 +785,15 @@ if __name__ == "__main__":
                         semantic_action = simulator.vocabulary.translate_word(verb)
                         simulator._world.move_object_to_wall(action=semantic_action, manner=adverb)
                     target_commands, _ = simulator._world.get_current_observations()
-
+                    
+                    has_relation_distractor = False
+                    full_relation_distractor = True
+                    for rel_bool in sampled_world["distractor_switch_map"]["relation"]:
+                        if rel_bool:
+                            has_relation_distractor = True
+                        else:
+                            full_relation_distractor = False
+                    
                     # Save all relevant information for a task.
                     task_struct = OrderedDict({
                         "command": ",".join(command_str.split(" ")),
@@ -814,8 +809,8 @@ if __name__ == "__main__":
                         "object_expression": obj_map,
                         "n_object": len(sampled_world["obj_map"]),
                         "n_distractor": len(sampled_world["obj_map"])-len(obj_map),
-                        "full_relation_distractor": True if len(sampled_world["distractor_switch_map"]["relation"]) == len(rel_map) else False,
-                        "has_relation_distractor": True if len(sampled_world["distractor_switch_map"]["relation"]) > 0 else False,
+                        "full_relation_distractor": full_relation_distractor,
+                        "has_relation_distractor": has_relation_distractor,
                         "has_attribute_distractor": sampled_world["distractor_switch_map"]["attribute"],
                         "has_isomorphism_distractor": sampled_world["distractor_switch_map"]["isomorphism"],
                         "has_random_distractor": True if sampled_world["n_random_distractor"] != -1 else False,
@@ -849,7 +844,9 @@ if __name__ == "__main__":
             # Now, we need to save data into the folder
             # along with possible statistics.
             to_save_command_struct = []
+            per_command_count = []
             for command_struct_index, count in per_command_world_counts.items():
+                per_command_count += [count]
                 if count >= 1:
                     to_save_command_struct.append(sampled_command_struct_indexed[command_struct_index])
             _ = get_command_struct_statistics(
@@ -861,6 +858,8 @@ if __name__ == "__main__":
                 save_to_disk=True if args.output_dir != "" else False,
                 wandb=wandb
             )
+            
+            wandb.log({"per_command_world_count": wandb.Histogram(per_command_count)})
             
             data_file_path = os.path.join(args.output_dir, "data.txt")
             
@@ -891,10 +890,4 @@ if __name__ == "__main__":
     if args.is_tensorboard:
         # end wandb
         run.finish()
-
-
-# In[ ]:
-
-
-
 
