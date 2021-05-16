@@ -327,8 +327,19 @@ class Grammer(object):
         return dependency_map
     
     def sample_object_relation_grammer(self, root, dependency_graph, enforce_is_inside_once=True):
+        sampled_object_relation_grammers = []
         # we enforce isinside to happen only once
-        
+        if len(dependency_graph) == 0:
+            # gSCAN
+            rel_map = OrderedDict({})
+            obj_patterns = ['$SHAPE', '$COLOR $SHAPE', '$SIZE $SHAPE', '$SIZE $COLOR $SHAPE']
+            for obj_pattern in obj_patterns:
+                obj_pattern_map = OrderedDict({
+                    root: obj_pattern
+                })
+                sampled_object_relation_grammers.append(
+                        (copy.deepcopy(obj_pattern_map), copy.deepcopy(rel_map)))
+            return sampled_object_relation_grammers
         # sample based on objects first, then relations.
         objects = set([])
         for k, v in dependency_graph.items():
@@ -345,7 +356,6 @@ class Grammer(object):
             root = False
         obj_permuations = product(*obj_permutator)
         
-        sampled_object_relation_grammers = []
         # let us start sampling grammers
         for obj_p in obj_permuations:
             obj_pattern_map = dict(zip(objects, obj_p))
@@ -381,6 +391,15 @@ class Grammer(object):
                                 # for example:
                                 # XXX same color as the red square.
                                 # the model only need to learn simple parsing.
+                                valid = False
+                                break
+                        if rel_i == self.SAME_SIZE_REGEX:
+                            if self.SIZE_REGEX in obj_pattern_map[pair_i[-1]]:
+                                # For size, it is a similar case as color.
+                                # Since, whenever small is mentioned, we only
+                                # allow two sizes, it seems to be redundant
+                                # to say
+                                # XXX same size as the small red circle.
                                 valid = False
                                 break
                         if rel_i == self.SAME_SHAPE_REGEX:

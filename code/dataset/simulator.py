@@ -221,12 +221,20 @@ class Simulator(object):
     def sample_random_object_spec(
         self, 
         size_exclude=None, 
-        color_exclude=None, shape_exclude=None
+        color_exclude=None, shape_exclude=None, combo_exclude=None
     ):
-        d_size = self.object_vocabulary.sample_size(_exclude=size_exclude)
-        d_color = self.object_vocabulary.sample_color(_exclude=color_exclude)
-        d_shape = self.object_vocabulary.sample_shape(_exclude=shape_exclude)
-        return Object(color=d_color,size=d_size,shape=d_shape)
+        if combo_exclude:
+            while True:
+                d_size = self.object_vocabulary.sample_size(_exclude=size_exclude)
+                d_color = self.object_vocabulary.sample_color(_exclude=color_exclude)
+                d_shape = self.object_vocabulary.sample_shape(_exclude=shape_exclude)
+                if d_color + " " + d_shape not in combo_exclude:
+                    return Object(color=d_color,size=d_size,shape=d_shape)
+        else:
+            d_size = self.object_vocabulary.sample_size(_exclude=size_exclude)
+            d_color = self.object_vocabulary.sample_color(_exclude=color_exclude)
+            d_shape = self.object_vocabulary.sample_shape(_exclude=shape_exclude)
+            return Object(color=d_color,size=d_size,shape=d_shape)
     
     def place_distractor_from_dict(
         self, distractors_dict, 
@@ -372,7 +380,7 @@ class Simulator(object):
         for obj_grammer, obj_str in obj_map.items():
             shape = self.extract_shape(obj_str)
             if shape != "":
-                mentioned_shapes.add(shape)
+                mentioned_shapes.add(shape) # For abstract mention, shape is determined later!
         for obj_grammer, obj_str in obj_map.items():
             # 1. Sample object.
             sampled_obj = self.sample_object_spec(
@@ -529,7 +537,22 @@ class Simulator(object):
             )
             obj_placed_map[obj_grammer] = sampled_obj
             obj_position_map[obj_grammer] = sampled_pos
+        
+        # Update the shape mentions for later use.
+        for obj_grammer, obj in obj_placed_map.items():
+            mentioned_shapes.add(obj.shape)
+            # maybe let us add color + shape to be more specific
+            mentioned_shapes.add(obj.color + " " + obj.shape)
+            # we also need to be more strict.
+            # if we have something like blue object
+            # $COLOR + $ABS_SHAPE, then
+            # we cannot have that color for any shape i think!
+            if "$COLOR" in obj_pattern_map[obj_grammer] and \
+                "$ABS_SHAPE" in obj_pattern_map[obj_grammer]:
+                for shape in self.object_vocabulary._shapes:
+                    mentioned_shapes.add(obj.color + " " + shape)
             
+        
         """
         Distractor Sampling Strategies and Design
         
@@ -787,19 +810,20 @@ class Simulator(object):
         random_distractor_metadata = {}
         n_random_distractor = -1
         if include_random_distractor:
-            if len(obj_placed_map) >= self.n_object_max or len(mentioned_shapes) == len(self.vocabulary.get_semantic_shapes())-1:
+            if len(obj_placed_map) >= self.n_object_max:
                 pass # Do nothing!
             else:
-                n_distractor = min(4, self.n_object_max-len(obj_placed_map)) # at max 2 random, how about?
+                n_distractor = self.n_object_max-len(obj_placed_map) # for simplier command, maybe all of them will be random?
                 n_random_distractor = n_distractor
                 core_obj_count = obj_drafted_count
                 for i in range(0, n_distractor):
                     distractor_idx = core_obj_count+i
                     distractor_name = f"$OBJ_{distractor_idx}"
-                    
+
                     # Let us only sample shapes that are not exist
                     sampled_distractor = self.sample_random_object_spec(
-                        shape_exclude=list(mentioned_shapes)
+                        shape_exclude=list(mentioned_shapes),
+                        combo_exclude=list(mentioned_shapes)
                     )
                     
                     # Ok, we need to consider global size constraint!

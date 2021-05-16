@@ -896,7 +896,7 @@ class World(MiniGridEnv):
     def set_mission(self, mission: str):
         self.mission = mission
         
-    def render_simple(self):
+    def render_simple(self, save_file=None):
         """
         Render the world simply in a RGB image
         """
@@ -905,5 +905,8 @@ class World(MiniGridEnv):
         plt.yticks([])
         render_rgb_array = self.render("rgb_array")
         plt.imshow(render_rgb_array)
+        fig = plt.gcf()
+        if save_file is not None:
+            fig.savefig(save_file, dpi=500, bbox_inches='tight', pad_inches=0)
         plt.show()
         return render_rgb_array
