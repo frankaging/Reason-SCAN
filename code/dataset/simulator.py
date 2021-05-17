@@ -1034,11 +1034,11 @@ class Simulator(object):
             relation_edges.append(edge)
         # if there is only 1 relation, do we really need it?
         # probably not?
-        if len(relation_edges) == 1:
+        if len(relation_edges) == 0 or len(relation_edges) == 1:
             # If there is only a single relation,
             # we will use the replacement method
             # to replace this relation with a new one!
-            pass
+            return []
         elif len(relation_edges) == 2:
             random.shuffle(relation_edges)
             if full_set:
