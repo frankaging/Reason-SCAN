@@ -701,8 +701,12 @@ class Simulator(object):
             """
             Relation Distractors: Count=3*n, at max 6.
             Relation Distractors (fast): Count=2*n, at max 4.
+            
+            sample_distractor_grammer_by_relation_fast
+            
+            sample_distractor_grammer_by_relation
             """
-            relation_distractors_dicts = self.sample_distractor_grammer_by_relation_fast(
+            relation_distractors_dicts = self.sample_distractor_grammer_by_relation(
                 grammer_pattern, 
                 obj_pattern_map, 
                 rel_map, 
@@ -1028,62 +1032,73 @@ class Simulator(object):
             # I don't want to sample box again
             # this will add too many box at the end!
             relation_edges.append(edge)
-        random.shuffle(relation_edges)
-        if full_set:
+        # if there is only 1 relation, do we really need it?
+        # probably not?
+        if len(relation_edges) == 1:
+            # If there is only a single relation,
+            # we will use the replacement method
+            # to replace this relation with a new one!
             pass
+        elif len(relation_edges) == 2:
+            random.shuffle(relation_edges)
+            if full_set:
+                pass
+            else:
+                relation_edges = relation_edges[:1] # select only the first element.
+
+            existing_relations = set([v for k, v in referent_rel_map.items()])
+
+            for selected_leaf_edge in relation_edges:
+
+                distractor_metadata = {
+                    "edge" : selected_leaf_edge,
+                    "relation_old_type" : referent_rel_map[selected_leaf_edge],
+                    "full_set" : full_set,
+                }
+
+                distractor_size_map = {}
+                # First, let us make copies.
+                distractor_grammer_pattern = "$OBJ_0 ^ $OBJ_1"
+                distractor_obj_pattern_map = {}
+                node_left = selected_leaf_edge[0]
+                node_right = selected_leaf_edge[1]
+
+                distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map[node_left]
+                distractor_obj_pattern_map["$OBJ_1"] = referent_obj_pattern_map[node_right]
+                distractor_rel_map = OrderedDict({})
+                distractor_rel_map[("$OBJ_0", "$OBJ_1")] = referent_rel_map[selected_leaf_edge]
+                distractor_obj_map = {}
+                distractor_obj_map["$OBJ_0"] = referent_obj_map[node_left]
+                distractor_obj_map["$OBJ_1"] = referent_obj_map[node_right]
+
+                # We need to increment the object counters.
+                distractors_dicts += [{
+                                        "grammer_pattern" : self.snap_pattern_to_referent_map(
+                                            distractor_grammer_pattern,
+                                            obj_base_count
+                                        ),
+                                        "obj_pattern_map" : self.snap_object_map_to_referent_map(
+                                            distractor_obj_pattern_map,
+                                            obj_base_count
+                                        ),
+                                        "rel_map" : self.snap_relation_map_to_referent_map(
+                                            distractor_rel_map,
+                                            obj_base_count
+                                        ),
+                                        "obj_map" : self.snap_object_map_to_referent_map(
+                                            distractor_obj_map,
+                                            obj_base_count
+                                        ),
+                                        "size_map" : self.snap_object_map_to_referent_map(
+                                            distractor_size_map,
+                                            obj_base_count
+                                        ),
+                                        "distractor_metadata" : distractor_metadata
+                                    }]
+                obj_base_count += len(distractor_obj_pattern_map)
         else:
-            relation_edges = relation_edges[:1] # select only the first element.
-        
-        existing_relations = set([v for k, v in referent_rel_map.items()])
-
-        for selected_leaf_edge in relation_edges:
-
-            distractor_metadata = {
-                "edge" : selected_leaf_edge,
-                "relation_old_type" : referent_rel_map[selected_leaf_edge],
-                "full_set" : full_set,
-            }
-
-            distractor_size_map = {}
-            # First, let us make copies.
-            distractor_grammer_pattern = "$OBJ_0 ^ $OBJ_1"
-            distractor_obj_pattern_map = {}
-            node_left = selected_leaf_edge[0]
-            node_right = selected_leaf_edge[1]
-
-            distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map[node_left]
-            distractor_obj_pattern_map["$OBJ_1"] = referent_obj_pattern_map[node_right]
-            distractor_rel_map = OrderedDict({})
-            distractor_rel_map[("$OBJ_0", "$OBJ_1")] = referent_rel_map[selected_leaf_edge]
-            distractor_obj_map = {}
-            distractor_obj_map["$OBJ_0"] = referent_obj_map[node_left]
-            distractor_obj_map["$OBJ_1"] = referent_obj_map[node_right]
-            
-            # We need to increment the object counters.
-            distractors_dicts += [{
-                                    "grammer_pattern" : self.snap_pattern_to_referent_map(
-                                        distractor_grammer_pattern,
-                                        obj_base_count
-                                    ),
-                                    "obj_pattern_map" : self.snap_object_map_to_referent_map(
-                                        distractor_obj_pattern_map,
-                                        obj_base_count
-                                    ),
-                                    "rel_map" : self.snap_relation_map_to_referent_map(
-                                        distractor_rel_map,
-                                        obj_base_count
-                                    ),
-                                    "obj_map" : self.snap_object_map_to_referent_map(
-                                        distractor_obj_map,
-                                        obj_base_count
-                                    ),
-                                    "size_map" : self.snap_object_map_to_referent_map(
-                                        distractor_size_map,
-                                        obj_base_count
-                                    ),
-                                    "distractor_metadata" : distractor_metadata
-                                }]
-            obj_base_count += len(distractor_obj_pattern_map)
+            # You need to implement more methods for higher order relations!
+            assert False
 
         return distractors_dicts
             
@@ -1251,7 +1266,7 @@ class Simulator(object):
             random.shuffle(shufflable_objects)
         shufflable_objects = shufflable_objects[:2]
         
-        if len(shufflable_objects) == 1:
+        if len(shufflable_objects) == 1 or len(shufflable_objects) == 0:
             return [] # We simply don't have enough objects to do this.
 
         # We will shuffle attributes between two objects.

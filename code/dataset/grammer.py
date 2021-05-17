@@ -175,10 +175,9 @@ class Grammer(object):
         This is helper as it will not explode your disk to generate a way
         too large version of the dataset.
         """
-        # return ['$OBJ_0 ^ $OBJ_1',
-        #         '$OBJ_0 ^ $OBJ_1 & $OBJ_2',
-        #         '$OBJ_0 ^ $OBJ_1 ^ $OBJ_2']
-        return ['$OBJ_0 ^ $OBJ_1 & $OBJ_2']
+        return ['$OBJ_0',
+                '$OBJ_0 ^ $OBJ_1',
+                '$OBJ_0 ^ $OBJ_1 & $OBJ_2']
     
     def _sample_grammer_pattern_reascan_length_split(self, obj_hiarch_only=True):
         """

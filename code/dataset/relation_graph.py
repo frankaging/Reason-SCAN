@@ -360,6 +360,10 @@ class ReaSCANGraph(object):
         which is:
         $OBJ_0 ^ $OBJ_1 & $OBJ_2
         """
+        
+        # Let us support more!
+        
+        
         G = self.G_full.copy()
         G_to_plot = self.G.copy()
         sub_G = relation_pattern.G_full.copy()
@@ -384,8 +388,6 @@ class ReaSCANGraph(object):
                     sub_G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
                 else:
                     sub_G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
-
-        assert len(rel_reverse_map) == 2
         
         G_node_attr_map = {}
         G_nbr_map = {}
@@ -411,31 +413,43 @@ class ReaSCANGraph(object):
                     G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
                 else:
                     G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
-        
         matched_pivot_node = set([])
-        for node_name, attr_set in G_node_attr_map.items():
-            if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
-                # Now, we just need to find 2 nbr nodes matchs $OBJ_1 and $OBJ_2 attributes at
-                # the same time.
-                match_result_map = {
-                    "$OBJ_1" : set([]), 
-                    "$OBJ_2" : set([]), 
-                }
-                for nbr in G_nbr_map[node_name]:
-                    if rel_reverse_map["$OBJ_1"] in G_edge_relation_map[(node_name, nbr)]:
-                        if len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
-                            # we have a match for OBJ_1
-                            match_result_map["$OBJ_1"].add(nbr)
-                    if rel_reverse_map["$OBJ_2"] in G_edge_relation_map[(node_name, nbr)]:
-                        if len(sub_G_node_attr_map["$OBJ_2"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_2"]):
-                            # we have a match for OBJ_2
-                            match_result_map["$OBJ_2"].add(nbr)
-                
-                if len(match_result_map["$OBJ_1"]) > 0 and len(match_result_map["$OBJ_2"]) > 0:
-                    if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"])) > 1:
-                        matched_pivot_node.add(node_name)
-        return matched_pivot_node
+        if len(rel_reverse_map) == 2:
+            for node_name, attr_set in G_node_attr_map.items():
+                if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                    # Now, we just need to find 2 nbr nodes matchs $OBJ_1 and $OBJ_2 attributes at
+                    # the same time.
+                    match_result_map = {
+                        "$OBJ_1" : set([]), 
+                        "$OBJ_2" : set([]), 
+                    }
+                    for nbr in G_nbr_map[node_name]:
+                        if rel_reverse_map["$OBJ_1"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
+                                # we have a match for OBJ_1
+                                match_result_map["$OBJ_1"].add(nbr)
+                        if rel_reverse_map["$OBJ_2"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_2"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_2"]):
+                                # we have a match for OBJ_2
+                                match_result_map["$OBJ_2"].add(nbr)
 
+                    if len(match_result_map["$OBJ_1"]) > 0 and len(match_result_map["$OBJ_2"]) > 0:
+                        if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"])) > 1:
+                            matched_pivot_node.add(node_name)
+        elif len(rel_reverse_map) == 0:
+            for node_name, attr_set in G_node_attr_map.items():
+                if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                    matched_pivot_node.add(node_name)
+        elif len(rel_reverse_map) == 1:
+            for node_name, attr_set in G_node_attr_map.items():
+                if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                    for nbr in G_nbr_map[node_name]:
+                        if rel_reverse_map["$OBJ_1"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
+                                # we have a match for OBJ_1
+                                matched_pivot_node.add(node_name)
+
+        return matched_pivot_node
 
     def find_referred_object(self, relation_pattern, referred_object="$OBJ_0", debug=False):
         """
