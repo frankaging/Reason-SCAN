@@ -1,3 +1,5 @@
+training_logs/
+eval_logs/
 code/dataset/wandb/
 .DS_Store
 data-files/

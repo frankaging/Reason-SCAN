@@ -537,7 +537,11 @@ class Grid:
                 grid_cell = self.get(col, row)
                 empty_representation = np.zeros(self._num_attributes_object + 1 + 4)
                 if grid_cell:
-                    empty_representation[:-5] = grid_cell.vector_representation
+                    if isinstance(grid_cell, list):
+                        empty_representation[:-5] = grid_cell[0].vector_representation + grid_cell[1].vector_representation
+                        
+                    else:
+                        empty_representation[:-5] = grid_cell.vector_representation
 
                 # Set agent feature to 1 for the grid cell with the agent and add it's direction in one-hot form.
                 if col == agent_column and row == agent_row:
