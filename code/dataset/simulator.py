@@ -227,12 +227,16 @@ class Simulator(object):
             while True:
                 d_size = self.object_vocabulary.sample_size(_exclude=size_exclude)
                 d_color = self.object_vocabulary.sample_color(_exclude=color_exclude)
+                if shape_exclude != None and len(shape_exclude) >= 3:
+                    shape_exclude = None # let us not excluding anything, and let graph matching reject this!
                 d_shape = self.object_vocabulary.sample_shape(_exclude=shape_exclude)
                 if d_color + " " + d_shape not in combo_exclude:
                     return Object(color=d_color,size=d_size,shape=d_shape)
         else:
             d_size = self.object_vocabulary.sample_size(_exclude=size_exclude)
             d_color = self.object_vocabulary.sample_color(_exclude=color_exclude)
+            if shape_exclude != None and len(shape_exclude) >= 3:
+                shape_exclude = None # let us not excluding anything, and let graph matching reject this!
             d_shape = self.object_vocabulary.sample_shape(_exclude=shape_exclude)
             return Object(color=d_color,size=d_size,shape=d_shape)
     

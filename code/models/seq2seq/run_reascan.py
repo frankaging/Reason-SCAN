@@ -104,8 +104,9 @@ parser.add_argument("--seed", type=int, default=42)
 def main(flags):
    
     # let us clean up the log
-    if os.path.exists(os.path.join(flags["output_directory"], f"{flags["mode"]}.log")):
-        os.remove(os.path.join(flags["output_directory"], f"{flags["mode"]}.log"))
+    mode = flags["mode"]
+    if os.path.exists(os.path.join(flags["output_directory"], f"{mode}.log")):
+        os.remove(os.path.join(flags["output_directory"], f"{mode}.log"))
     else:
         print("Try to remove existing logs. But it seems like it is already removed!")
 
