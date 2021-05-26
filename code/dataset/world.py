@@ -907,6 +907,6 @@ class World(MiniGridEnv):
         plt.imshow(render_rgb_array)
         fig = plt.gcf()
         if save_file is not None:
-            fig.savefig(save_file, dpi=500, bbox_inches='tight', pad_inches=0)
+            fig.savefig(save_file, dpi=500)
         plt.show()
         return render_rgb_array

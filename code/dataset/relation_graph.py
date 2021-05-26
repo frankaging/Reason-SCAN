@@ -135,7 +135,7 @@ class ReaSCANGraph(object):
             "$IS_INSIDE" : "y"
         }
         
-    def draw(self, G_to_plot=None):
+    def draw(self, G_to_plot=None, save_file=None):
         """
         This function only draws objects and relations, but not attributes.
         """
@@ -215,11 +215,15 @@ class ReaSCANGraph(object):
                 legends.append(type)
         plt.legend(groups, legends, numpoints=1, 
                    handler_map={tuple: HandlerTuple(ndivide=None)}, 
-                   loc='upper center', bbox_to_anchor=(0.48, -0.06),
+                   loc='upper center', bbox_to_anchor=(0.48, 0.05),
                    ncol=3, fancybox=True, shadow=True, fontsize=11)
         plt.margins(0.2)
         plt.axis('off')
-        plt.show()
+        if save_file != None:
+            plt.savefig(save_file, dpi=1000)
+            plt.close()
+        else:
+            plt.show()
 
     def parse_relations(self, objects, object_patterns, positions):
         relations = OrderedDict({})
