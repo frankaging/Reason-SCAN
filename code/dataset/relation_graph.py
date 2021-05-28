@@ -440,6 +440,34 @@ class ReaSCANGraph(object):
                     if len(match_result_map["$OBJ_1"]) > 0 and len(match_result_map["$OBJ_2"]) > 0:
                         if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"])) > 1:
                             matched_pivot_node.add(node_name)
+        elif len(rel_reverse_map) == 3:
+            for node_name, attr_set in G_node_attr_map.items():
+                if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                    match_result_map = {
+                        "$OBJ_1" : set([]), 
+                        "$OBJ_2" : set([]),
+                        "$OBJ_3" : set([]),
+                    }
+                    for nbr in G_nbr_map[node_name]:
+                        if rel_reverse_map["$OBJ_1"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
+                                # we have a match for OBJ_1
+                                match_result_map["$OBJ_1"].add(nbr)
+                        if rel_reverse_map["$OBJ_2"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_2"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_2"]):
+                                # we have a match for OBJ_2
+                                match_result_map["$OBJ_2"].add(nbr)
+                        if rel_reverse_map["$OBJ_3"] in G_edge_relation_map[(node_name, nbr)]:
+                            if len(sub_G_node_attr_map["$OBJ_3"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_3"]):
+                                # we have a match for OBJ_2
+                                match_result_map["$OBJ_3"].add(nbr)
+                    # sub-problem of minimum set cover problem.
+                    if len(match_result_map["$OBJ_1"]) > 0 and len(match_result_map["$OBJ_2"]) > 0 and len(match_result_map["$OBJ_3"]) > 0:
+                        if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"])) > 1 and \
+                            len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_3"])) > 1 and \
+                            len(match_result_map["$OBJ_2"].union(match_result_map["$OBJ_3"])) > 1:
+                            if len(match_result_map["$OBJ_1"].union(match_result_map["$OBJ_2"]).union(match_result_map["$OBJ_3"])) > 2:
+                                matched_pivot_node.add(node_name)
         elif len(rel_reverse_map) == 0:
             for node_name, attr_set in G_node_attr_map.items():
                 if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
