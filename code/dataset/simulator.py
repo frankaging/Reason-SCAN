@@ -710,7 +710,7 @@ class Simulator(object):
             
             sample_distractor_grammer_by_relation
             """
-            relation_distractors_dicts = self.sample_distractor_grammer_by_relation(
+            relation_distractors_dicts = self.sample_distractor_grammer_by_relation_fast(
                 grammer_pattern, 
                 obj_pattern_map, 
                 rel_map, 
@@ -755,7 +755,38 @@ class Simulator(object):
                 temp_sampled_world,
                 special_shape_size_bound,
                 obj_base_count=obj_drafted_count, # This is important, as previous draft may success but placement can fail!
-                full_set=full_set,
+                full_set=True, # always include some attribute based distractors.
+            )
+            if len(attribute_distractors_dicts) == 0:
+                pass # Size distractor is not applicable 
+            else:
+                obj_drafted_count += len(attribute_distractors_dicts[0]["obj_map"])
+                succeed = self.place_distractor_from_dict(
+                    attribute_distractors_dicts[0], 
+                    obj_placed_map, 
+                    obj_position_map,
+                    debug=debug,
+                    special_shape_size_bound=special_shape_size_bound,
+                    mentioned_shapes=mentioned_shapes,
+                    # This is needed as maybe distractors also 
+                    # need to be bounded by global constraints.
+                )
+                if succeed:
+                    if attribute_distractors_dicts[0]["grammer_pattern"] != "DUMMY":
+                        distractor_switch_map["attribute"] = True # If one time it is true, it is true.
+                else:
+                    pass
+        else:
+            # we need to ground size.
+            attribute_distractors_dicts = self.sample_distractor_grammer_by_attribute(
+                grammer_pattern, 
+                obj_pattern_map, 
+                rel_map, 
+                obj_map, 
+                temp_sampled_world,
+                special_shape_size_bound,
+                obj_base_count=obj_drafted_count, # This is important, as previous draft may success but placement can fail!
+                full_set=False,
             )
             if len(attribute_distractors_dicts) == 0:
                 pass # Size distractor is not applicable 
@@ -1043,12 +1074,13 @@ class Simulator(object):
             # we will use the replacement method
             # to replace this relation with a new one!
             return []
-        elif len(relation_edges) == 2:
-            random.shuffle(relation_edges)
-            if full_set:
-                pass
-            else:
-                relation_edges = relation_edges[:1] # select only the first element.
+        else:
+            # PR: always fullset.
+            # random.shuffle(relation_edges)
+            # if full_set:
+            #     pass
+            # else:
+            #    relation_edges = relation_edges[:1] # select only the first element.
 
             existing_relations = set([v for k, v in referent_rel_map.items()])
 
@@ -1056,25 +1088,38 @@ class Simulator(object):
 
                 distractor_metadata = {
                     "edge" : selected_leaf_edge,
-                    "relation_old_type" : referent_rel_map[selected_leaf_edge],
+                    "relation_old_type" : referent_rel_map[selected_leaf_edge], # omit relations
                     "full_set" : full_set,
                 }
-
+                
+                # now for the selected edge, we omit them!
+                distractor_grammer_pattern = referent_grammer_pattern.split(" ")[:-2]
+                distractor_grammer_pattern = " ".join(distractor_grammer_pattern) # omiting the last.
+                
                 distractor_size_map = {}
+                
                 # First, let us make copies.
-                distractor_grammer_pattern = "$OBJ_0 ^ $OBJ_1"
                 distractor_obj_pattern_map = {}
-                node_left = selected_leaf_edge[0]
-                node_right = selected_leaf_edge[1]
-
-                distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map[node_left]
-                distractor_obj_pattern_map["$OBJ_1"] = referent_obj_pattern_map[node_right]
-                distractor_rel_map = OrderedDict({})
-                distractor_rel_map[("$OBJ_0", "$OBJ_1")] = referent_rel_map[selected_leaf_edge]
+                keeping_edges = []
+                keeping_objects = []
+                for keeping_edge in relation_edges:
+                    if keeping_edge != selected_leaf_edge:
+                        keeping_edges.append(keeping_edge)
+                        if keeping_edge[0] not in keeping_objects:
+                            keeping_objects.append(keeping_edge[0])
+                        if keeping_edge[1] not in keeping_objects:
+                            keeping_objects.append(keeping_edge[1])
+                reverse_mapping = {}
                 distractor_obj_map = {}
-                distractor_obj_map["$OBJ_0"] = referent_obj_map[node_left]
-                distractor_obj_map["$OBJ_1"] = referent_obj_map[node_right]
-
+                for i in range(0, len(keeping_objects)):
+                    distractor_obj_pattern_map[f"$OBJ_{i}"] = referent_obj_pattern_map[keeping_objects[i]]
+                    distractor_obj_map[f"$OBJ_{i}"] = referent_obj_map[keeping_objects[i]]
+                    reverse_mapping[keeping_objects[i]] = f"$OBJ_{i}"
+                
+                distractor_rel_map = OrderedDict({})
+                for keeping_edge in keeping_edges:
+                    distractor_rel_map[reverse_mapping[keeping_edge[0]], reverse_mapping[keeping_edge[1]]] = referent_rel_map[keeping_edge]
+                
                 # We need to increment the object counters.
                 distractors_dicts += [{
                                         "grammer_pattern" : self.snap_pattern_to_referent_map(
@@ -1099,10 +1144,8 @@ class Simulator(object):
                                         ),
                                         "distractor_metadata" : distractor_metadata
                                     }]
+                
                 obj_base_count += len(distractor_obj_pattern_map)
-        else:
-            # You need to implement more methods for higher order relations!
-            assert False
 
         return distractors_dicts
             

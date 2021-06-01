@@ -1,3 +1,13 @@
+code/models/gSCAN_with_language_conditioned_embedding/analysis/
+code/models/gSCAN_with_language_conditioned_embedding/output/
+code/models/gSCAN_with_language_conditioned_embedding/exp/
+code/models/gSCAN_with_language_conditioned_embedding/parsed_dataset/
+code/models/gSCAN_with_language_conditioned_embedding/parsed_dataset-p1/
+code/models/gSCAN_with_language_conditioned_embedding/parsed_dataset-p2/
+code/models/gSCAN_with_language_conditioned_embedding/parsed_dataset-p3/
+code/models/gSCAN_with_language_conditioned_embedding/parsed_dataset-p3-rd/
+data-files-updated/
+arch_data/
 testing_logs/
 training_logs/
 eval_logs/

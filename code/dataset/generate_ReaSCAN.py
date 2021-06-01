@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[33]:
+# In[ ]:
 
 
 import argparse
@@ -42,16 +42,12 @@ from simulator import *
 from relation_graph import *
 
 import logging
-FORMAT = "%(asctime)-15s %(message)s"
-logging.basicConfig(format=FORMAT, level=logging.INFO,
-                    datefmt="%Y-%m-%d %H:%M")
-logger = logging.getLogger(__name__)
 
 import warnings
 warnings.filterwarnings("ignore")
 
 
-# In[34]:
+# In[ ]:
 
 
 # Helpers.
@@ -240,7 +236,7 @@ def get_command_struct_statistics(
     
     # relation
     relation_stats = get_relation_statistics(command_structs)
-    if len(relation_stats) != 0:
+    if len(flatten_dictionary(relation_stats)) != 0:
         statistics["relation_stats"] = relation_stats
         plot_dictionary(
             [flatten_dictionary(relation_stats)],
@@ -263,22 +259,24 @@ def get_command_struct_statistics(
     color_adjectives = ["red", "blue", "green", "yellow"]
     c_stats = get_attribute_statistics(command_structs, include_keywords=color_adjectives)
     statistics["color_stats"] = c_stats
-    plot_dictionary(
-        [flatten_dictionary(c_stats)],
-        title="Colors",
-        save_file=os.path.join(output_dir, f"color_stats-{split}.png"),
-        wandb=wandb,
-    )
+    if len(flatten_dictionary(c_stats)) != 0:
+        plot_dictionary(
+            [flatten_dictionary(c_stats)],
+            title="Colors",
+            save_file=os.path.join(output_dir, f"color_stats-{split}.png"),
+            wandb=wandb,
+        )
 
     size_adjectives = ["big", "small"]
     s_stats = get_attribute_statistics(command_structs, include_keywords=size_adjectives)
-    statistics["size_stats"] = s_stats
-    plot_dictionary(
-        [flatten_dictionary(s_stats)],
-        title="Sizes",
-        save_file=os.path.join(output_dir, f"size_stats-{split}.png"),
-        wandb=wandb,
-    )
+    if len(flatten_dictionary(s_stats)) != 0:
+        statistics["size_stats"] = s_stats
+        plot_dictionary(
+            [flatten_dictionary(s_stats)],
+            title="Sizes",
+            save_file=os.path.join(output_dir, f"size_stats-{split}.png"),
+            wandb=wandb,
+        )
     
     # second order attribute
     color_adjectives = ["red", "blue", "green", "yellow"]
@@ -287,12 +285,13 @@ def get_command_struct_statistics(
     include_keywords = [" ".join(c_n) for c_n in c_n_p]
     c_n_stats = get_attribute_statistics(command_structs, include_keywords=include_keywords)
     statistics["color_and_shape_stats"] = c_n_stats
-    plot_dictionary(
-        [flatten_dictionary(c_n_stats)],
-        title="Colors-Shapes",
-        save_file=os.path.join(output_dir, f"color+shape_stats-{split}.png"),
-        wandb=wandb,
-    )
+    if len(flatten_dictionary(c_n_stats)) != 0:
+        plot_dictionary(
+            [flatten_dictionary(c_n_stats)],
+            title="Colors-Shapes",
+            save_file=os.path.join(output_dir, f"color+shape_stats-{split}.png"),
+            wandb=wandb,
+        )
 
     size_adjectives = ["big", "small"]
     nouns = ["circle", "cylinder", "square", "box", "object"]
@@ -300,12 +299,13 @@ def get_command_struct_statistics(
     include_keywords = [" ".join(s_n) for s_n in s_n_p]
     s_n_stats = get_attribute_statistics(command_structs, include_keywords=include_keywords)
     statistics["size_and_shape_stats"] = s_n_stats
-    plot_dictionary(
-        [flatten_dictionary(s_n_stats)],
-        title="Sizes-Shapes",
-        save_file=os.path.join(output_dir, f"size+shape_stats-{split}.png"),
-        wandb=wandb,
-    )
+    if len(flatten_dictionary(s_n_stats)) != 0:
+        plot_dictionary(
+            [flatten_dictionary(s_n_stats)],
+            title="Sizes-Shapes",
+            save_file=os.path.join(output_dir, f"size+shape_stats-{split}.png"),
+            wandb=wandb,
+        )
     
     # third order attribute
     size_adjectives = ["big", "small"]
@@ -342,6 +342,11 @@ def arg_parse():
     # Experiment management:
     parser.add_argument('--n_processes', type=int, default=1,
                         help='Number of process used to generate the dataset.')
+    parser.add_argument('--index_start', type=int, default=-1,
+                        help='Number of command sampled from the command population.')
+    parser.add_argument('--index_end', type=int, default=-1,
+                        help='Number of command sampled from the command population.')
+
     parser.add_argument('--mode', type=str, default="all",
                         help='mode')
     parser.add_argument('--n_command_struct', type=int, default=10000,
@@ -362,6 +367,33 @@ def arg_parse():
                         default=False,
                         action='store_true',
                         help="Whether to use tensorboard.")
+    
+    parser.add_argument("--include_relation_distractor",
+                        default=False,
+                        action='store_true',
+                        help="Whether to use tensorboard.")
+    parser.add_argument("--include_attribute_distractor",
+                        default=False,
+                        action='store_true',
+                        help="Whether to use tensorboard.")
+    parser.add_argument("--include_isomorphism_distractor",
+                        default=False,
+                        action='store_true',
+                        help="Whether to use tensorboard.")
+    parser.add_argument("--include_random_distractor",
+                        default=False,
+                        action='store_true',
+                        help="Whether to use tensorboard.")
+    parser.add_argument('--full_relation_probability', type=float, default=1.0,
+                        help='Probability of including full relation distractors.')
+    
+    parser.add_argument('--save_interal', type=int, default=200,
+                        help='Saving intervel in command count.')
+    
+    
+    parser.add_argument('--command_pattern', type=str, default="p3",
+                        help='What pattern to use, currently, we support p1-p4.')
+    
     parser.add_argument('--resumed_from_file_path', type=str, default="",
                         help='Whether to resume for this file.')
     parser.add_argument('--output_dir', type=str, default="../../data-files/ReaSCAN-compositional_splits/",
@@ -415,7 +447,7 @@ def example_classifier(
         pass
 
 
-# In[35]:
+# In[ ]:
 
 
 # Some tips:
@@ -423,7 +455,7 @@ def example_classifier(
 # to the lightweight demo file, and you can debug there!
 
 
-# In[31]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -451,30 +483,51 @@ if __name__ == "__main__":
         # Experiment management:
         args.n_processes=1
         args.mode="train"
-        args.n_command_struct=10000
+        args.n_command_struct=675*5
         args.grid_size=6
         args.n_object_max=10
         args.seed=42
-        args.date="2021-05-17"
-        args.per_command_world_retry_max=200
-        args.per_command_world_target_count=50
+        args.save_interal = 200
+        args.date="2021-05-30"
+        args.per_command_world_retry_max=1000
+        args.per_command_world_target_count=180
         args.resumed_from_file_path=""
         args.is_tensorboard=True # Let us try this!
-        args.output_dir="../../data-files/ReaSCAN-compositional/"
+        args.output_dir="../../data-files/ReaSCAN-compositional-p3-full-relation/"
         is_jupyter = True
+        
+        args.index_start = -1
+        args.index_end = -1
     except:
         is_jupyter = False
     
-    n_other_command = int(args.n_command_struct/10)
+    loading_p1 = True if args.command_pattern == "p1" else False
+    p1_exhaustive_verb_adverb = False
+    loading_p2 = True if args.command_pattern == "p2" else False
+    loading_p3 = True if args.command_pattern == "p3" else False
+    loading_p4 = True if args.command_pattern == "p4" else False
+
+    save_command_stats = False
+    save_at_interval = True
+    save_interal = args.save_interal
+
     # TODO: add these to args.
-    logging_interval = 10
-    save_interal = 200
-    
-    logger.info("Generating ReaSCAN with following parameters: ")
-    logger.info(args)
+    logging_interval = 1000
     
     # Create output directory if not exists.
     pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True) 
+    
+    logging.basicConfig(
+        level=logging.INFO, 
+        format='%(asctime)s %(levelname)-8s %(message)s', 
+        datefmt='%a, %d %b %Y %H:%M:%S', 
+        filename=os.path.join(args.output_dir, "generator.log"),
+    )
+    logger = logging.getLogger(__name__)
+    logging.getLogger().addHandler(logging.StreamHandler(os.sys.stdout))
+    
+    logger.info("Generating ReaSCAN with following parameters: ")
+    logger.info(args)
     
     # This is a single loop to generate the dataset.
     n_processes = args.n_processes
@@ -572,29 +625,111 @@ if __name__ == "__main__":
     logger.info("Finished loading required modules...")
     # Sampling all the possible command score structs.
     
-    # Currently, we hard-code the pattern!
-    grammer_pattern = '$OBJ_0 ^ $OBJ_1 & $OBJ_2'
-    # Sampling relations
-    relations = grammer.sample_object_relation_grammer(
-        '$OBJ_0', 
-        grammer.build_dependency_graph(grammer_pattern))
-    for relation in relations:
-        obj_pattern_map = relation[0]
-        rel_map = relation[1]
-        grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
-        for obj_map in grammer_bindings:
-            # here, we also sample the verb and adverb bindings!
-            adverb_enhance_list = vocabulary.get_adverbs()
-            adverb_enhance_list += [""]
-            command_struct = {
-                "obj_pattern_map" : obj_pattern_map,
-                "rel_map" : rel_map,
-                "obj_map" : obj_map,
-                "grammer_pattern" : grammer_pattern,
-                "adverb" : random.choice(adverb_enhance_list),
-                "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
-            }
-            command_structs += [command_struct]
+    if loading_p4:
+        # Currently, we hard-code the pattern!
+        grammer_pattern = '$OBJ_0 ^ $OBJ_1 & $OBJ_2 & $OBJ_3'
+        logger.info(f"Including pattern:= {grammer_pattern}...")
+        # Sampling relations
+        relations = grammer.sample_object_relation_grammer(
+            '$OBJ_0', 
+            grammer.build_dependency_graph(grammer_pattern))
+        for relation in relations:
+            obj_pattern_map = relation[0]
+            rel_map = relation[1]
+            grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
+            for obj_map in grammer_bindings:
+                # here, we also sample the verb and adverb bindings!
+                adverb_enhance_list = vocabulary.get_adverbs()
+                adverb_enhance_list += [""]
+                command_struct = {
+                    "obj_pattern_map" : obj_pattern_map,
+                    "rel_map" : rel_map,
+                    "obj_map" : obj_map,
+                    "grammer_pattern" : grammer_pattern,
+                    "adverb" : random.choice(adverb_enhance_list),
+                    "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
+                }
+                command_structs += [command_struct]
+                
+    if loading_p3:
+        # Currently, we hard-code the pattern!
+        grammer_pattern = '$OBJ_0 ^ $OBJ_1 & $OBJ_2'
+        logger.info(f"Including pattern:= {grammer_pattern}...")
+        # Sampling relations
+        relations = grammer.sample_object_relation_grammer(
+            '$OBJ_0', 
+            grammer.build_dependency_graph(grammer_pattern))
+        for relation in relations:
+            obj_pattern_map = relation[0]
+            rel_map = relation[1]
+            grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
+            for obj_map in grammer_bindings:
+                # here, we also sample the verb and adverb bindings!
+                adverb_enhance_list = vocabulary.get_adverbs()
+                adverb_enhance_list += [""]
+                command_struct = {
+                    "obj_pattern_map" : obj_pattern_map,
+                    "rel_map" : rel_map,
+                    "obj_map" : obj_map,
+                    "grammer_pattern" : grammer_pattern,
+                    "adverb" : random.choice(adverb_enhance_list),
+                    "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
+                }
+                command_structs += [command_struct]
+    
+    if loading_p2:
+        grammer_pattern = '$OBJ_0 ^ $OBJ_1'
+        logger.info(f"Including pattern:= {grammer_pattern}...")
+        # Sampling relations
+        relations = grammer.sample_object_relation_grammer(
+            '$OBJ_0', 
+            grammer.build_dependency_graph(grammer_pattern))
+        for relation in relations:
+            obj_pattern_map = relation[0]
+            rel_map = relation[1]
+            grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
+            for obj_map in grammer_bindings:
+                # here, we also sample the verb and adverb bindings!
+                adverb_enhance_list = vocabulary.get_adverbs()
+                adverb_enhance_list += [""]
+                command_struct = {
+                    "obj_pattern_map" : obj_pattern_map,
+                    "rel_map" : rel_map,
+                    "obj_map" : obj_map,
+                    "grammer_pattern" : grammer_pattern,
+                    "adverb" : random.choice(adverb_enhance_list),
+                    "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
+                }
+                command_structs += [command_struct]
+    
+    if loading_p1:
+        p1_exhaustive_verb_adverb = True
+        # for gSCAN command, we don't need to undersample, they are small!
+        grammer_pattern = '$OBJ_0'
+        logger.info(f"Including pattern:= {grammer_pattern}...")
+        # Sampling relations
+        relations = grammer.sample_object_relation_grammer(
+            '$OBJ_0', 
+            grammer.build_dependency_graph(grammer_pattern))
+        for relation in relations:
+            obj_pattern_map = relation[0]
+            rel_map = relation[1]
+            grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
+            for obj_map in grammer_bindings:
+                if p1_exhaustive_verb_adverb:
+                    for adverb in vocabulary.get_adverbs() + [""]:
+                        for verb in vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs():
+                            # here, we also sample the verb and adverb bindings!
+                            command_struct = {
+                                "obj_pattern_map" : obj_pattern_map,
+                                "rel_map" : rel_map,
+                                "obj_map" : obj_map,
+                                "grammer_pattern" : grammer_pattern,
+                                "adverb" : adverb,
+                                "verb" : verb,
+                            }
+                            command_structs += [command_struct]
+            
     # We only sample these command!
     """
     WARNING: beaware that not all command struct can
@@ -603,63 +738,17 @@ if __name__ == "__main__":
     """
     under_sample = True
     if under_sample:
+        sampled_command_struct = []
         random.shuffle(command_structs)
-        sampled_command_struct = command_structs[:n_command_struct]
-        logger.info(f"Sampled {n_command_struct} from {len(command_structs)} core command structs for pattern={grammer_pattern}.")
-            
-    grammer_pattern = '$OBJ_0 ^ $OBJ_1'
-    # Sampling relations
-    relations = grammer.sample_object_relation_grammer(
-        '$OBJ_0', 
-        grammer.build_dependency_graph(grammer_pattern))
-    sub_command_structs = []
-    for relation in relations:
-        obj_pattern_map = relation[0]
-        rel_map = relation[1]
-        grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
-        for obj_map in grammer_bindings:
-            # here, we also sample the verb and adverb bindings!
-            adverb_enhance_list = vocabulary.get_adverbs()
-            adverb_enhance_list += [""]
-            command_struct = {
-                "obj_pattern_map" : obj_pattern_map,
-                "rel_map" : rel_map,
-                "obj_map" : obj_map,
-                "grammer_pattern" : grammer_pattern,
-                "adverb" : random.choice(adverb_enhance_list),
-                "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
-            }
-            sub_command_structs += [command_struct]
-            
-    random.shuffle(sub_command_structs)
-    sub_sampled_command_struct = sub_command_structs[:n_other_command]
-    logger.info(f"Sampled {len(sub_sampled_command_struct)} from {len(sub_command_structs)} core command structs for pattern={grammer_pattern}.")
-    for sub_c in sub_sampled_command_struct:
-        sampled_command_struct += [sub_c]
-    
-    # for gSCAN command, we don't need to undersample, they are small!
-    grammer_pattern = '$OBJ_0'
-    # Sampling relations
-    relations = grammer.sample_object_relation_grammer(
-        '$OBJ_0', 
-        grammer.build_dependency_graph(grammer_pattern))
-    for relation in relations:
-        obj_pattern_map = relation[0]
-        rel_map = relation[1]
-        grammer_bindings = grammer.grounding_grammer_with_vocabulary(grammer_pattern, obj_pattern_map, rel_map)
-        for obj_map in grammer_bindings:
-            # here, we also sample the verb and adverb bindings!
-            adverb_enhance_list = vocabulary.get_adverbs()
-            adverb_enhance_list += [""]
-            command_struct = {
-                "obj_pattern_map" : obj_pattern_map,
-                "rel_map" : rel_map,
-                "obj_map" : obj_map,
-                "grammer_pattern" : grammer_pattern,
-                "adverb" : random.choice(adverb_enhance_list),
-                "verb" : random.choice(vocabulary.get_transitive_verbs() + vocabulary.get_intransitive_verbs()),
-            }
-            sampled_command_struct += [command_struct]
+        if n_command_struct != -1:
+            sampled_command_struct = command_structs[:n_command_struct]
+        if args.index_start == -1 or args.index_end == -1:
+            pass
+        else:
+            # we only look at one shard! this is for multiprocess
+            logger.info(f"WARNING: contine with sharding: start at {args.index_start}; end at {args.index_end}")
+            sampled_command_struct = command_structs[args.index_start:args.index_end]
+        logger.info(f"Sampled {len(sampled_command_struct)} from {len(command_structs)} core command structs for pattern={grammer_pattern}.")
             
     logger.info(f"Finished sampling core command structs with total {len(sampled_command_struct)}...")
     
@@ -733,7 +822,7 @@ if __name__ == "__main__":
     
     logger.info(f"Started to generate the dataset...")
     for command_struct_index, command_struct in sampled_command_struct_indexed.items():
-        logger.info(f"Generating for command struct: {command_struct_index+1}/{len(sampled_command_struct_indexed)}...")
+        logger.info(f"Generating for command struct (seed={seed}): {command_struct_index+1}/{len(sampled_command_struct_indexed)}...")
         per_command_world_counts[command_struct_index] = 0 # 0 world for each command in the beginning!
         per_command_world_unique_check[command_struct_index] = set([])
         obj_pattern_map = command_struct["obj_pattern_map"]
@@ -745,6 +834,7 @@ if __name__ == "__main__":
         # This is the target world number generated for this command
         for n_world_try in range(per_command_world_target_count):
             # How many time we need to retry before we give up?
+            at_least_success = False
             for n_retry in range(per_command_world_retry_max):
                 global_step += 1
                 if success_step == 0:
@@ -784,11 +874,11 @@ if __name__ == "__main__":
                         copy.deepcopy(rel_map), 
                         copy.deepcopy(obj_map),
                         is_plot=False,
-                        include_relation_distractor=True, 
-                        include_attribute_distractor=True, 
-                        include_isomorphism_distractor=False, 
-                        include_random_distractor=False,
-                        full_relation_probability=0.5,
+                        include_relation_distractor=args.include_relation_distractor, 
+                        include_attribute_distractor=args.include_attribute_distractor, 
+                        include_isomorphism_distractor=args.include_isomorphism_distractor, 
+                        include_random_distractor=args.include_random_distractor,
+                        full_relation_probability=args.full_relation_probability,
                         debug=False
                     ) # This is the minimum settings! You need to turn on attribute always!
                 else:
@@ -799,11 +889,11 @@ if __name__ == "__main__":
                         copy.deepcopy(rel_map), 
                         copy.deepcopy(obj_map),
                         is_plot=False,
-                        include_relation_distractor=True, 
-                        include_attribute_distractor=True, 
-                        include_isomorphism_distractor=True, 
-                        include_random_distractor=True,
-                        full_relation_probability=0.5, # 0.5 seems to work as well!
+                        include_relation_distractor=args.include_relation_distractor, 
+                        include_attribute_distractor=args.include_attribute_distractor, 
+                        include_isomorphism_distractor=args.include_isomorphism_distractor, 
+                        include_random_distractor=args.include_random_distractor,
+                        full_relation_probability=args.full_relation_probability, # ReaSCAN Special: 15 distractors!
                         debug=False
                     )
 
@@ -833,6 +923,7 @@ if __name__ == "__main__":
 
                 # Save the result if the world is valid!
                 if len(potential_referent_target) == 1:
+                    at_least_success = True
                     success_step += 1
                     # A quick world repeat check!
                     hash_world_str = hashlib.md5(str(sampled_world["situation"].to_representation()).encode('utf-8')).hexdigest()
@@ -925,8 +1016,10 @@ if __name__ == "__main__":
                     created_examples_by_splits[split].append(task_struct)
                     per_command_world_counts[command_struct_index] += 1
                     break # break the retry loop!
-
-        if (command_struct_index+1)% save_interal == 0:
+            if not at_least_success:
+                logger.info(f"WARNING: the success rate for this command is close to 0.0%, skipping...")
+                break # success rate for this comman is ~= 0.0%, let us directly skip
+        if save_at_interval and (command_struct_index+1)% save_interal == 0:
             logger.info(f"Saving data files and statistics to {args.output_dir} for checkpoints...")
             # Now, we need to save data into the folder
             # along with possible statistics.
@@ -936,21 +1029,23 @@ if __name__ == "__main__":
                 per_command_count += [count]
                 if count >= 1:
                     to_save_command_struct.append(sampled_command_struct_indexed[command_struct_index])
-            _ = get_command_struct_statistics(
-                to_save_command_struct, run_name=f"ReaSCAN-{mode}", date=args.date, 
-                split=mode,
-                compositional_split=False,
-                n_sample=-1,
-                output_dir=args.output_dir,
-                save_to_disk=True if args.output_dir != "" else False,
-                wandb=wandb
-            )
+            if save_command_stats:
+                _ = get_command_struct_statistics(
+                    to_save_command_struct, run_name=f"ReaSCAN-{mode}", date=args.date, 
+                    split=mode,
+                    compositional_split=False,
+                    n_sample=-1,
+                    output_dir=args.output_dir,
+                    save_to_disk=True if args.output_dir != "" else False,
+                    wandb=wandb
+                )
             
-            wandb.log({"per_command_world_count": wandb.Histogram(per_command_count)})
+            # wandb.log({"per_command_world_count": wandb.Histogram(per_command_count)})
             
-            data_file_path = os.path.join(args.output_dir, "data.txt")
+            data_file_path = os.path.join(args.output_dir, f"data-{args.mode}.txt")
             
             if mode == "demo" or mode == "all" or mode == "train":
+                logger.info(f"total example count={success_step}...")
                 dataset_representation = {
                     "grid_size": args.grid_size,
                     "type_grammar": "ReaSCAN-Grammer",
@@ -974,7 +1069,7 @@ if __name__ == "__main__":
                 pass
             
     # Last round of saving!
-    logger.info(f"Saving FINAL data files and statistics to {args.output_dir} for checkpoints...")
+    logger.info(f"Saving FINAL data files and statistics to {args.output_dir}...")
     # Now, we need to save data into the folder
     # along with possible statistics.
     to_save_command_struct = []
@@ -983,21 +1078,23 @@ if __name__ == "__main__":
         per_command_count += [count]
         if count >= 1:
             to_save_command_struct.append(sampled_command_struct_indexed[command_struct_index])
-    _ = get_command_struct_statistics(
-        to_save_command_struct, run_name=f"ReaSCAN-{mode}", date=args.date, 
-        split=mode,
-        compositional_split=False,
-        n_sample=-1,
-        output_dir=args.output_dir,
-        save_to_disk=True if args.output_dir != "" else False,
-        wandb=wandb
-    )
+    if save_command_stats:
+        _ = get_command_struct_statistics(
+            to_save_command_struct, run_name=f"ReaSCAN-{mode}", date=args.date, 
+            split=mode,
+            compositional_split=False,
+            n_sample=-1,
+            output_dir=args.output_dir,
+            save_to_disk=True if args.output_dir != "" else False,
+            wandb=wandb
+        )
 
-    wandb.log({"per_command_world_count": wandb.Histogram(per_command_count)})
+    # wandb.log({"per_command_world_count": wandb.Histogram(per_command_count)})
 
     data_file_path = os.path.join(args.output_dir, f"data-{args.mode}.txt")
 
     if mode == "demo" or mode == "all" or mode == "train":
+        logger.info(f"total example count={success_step}...")
         dataset_representation = {
             "grid_size": args.grid_size,
             "type_grammar": "ReaSCAN-Grammer",
@@ -1023,16 +1120,4 @@ if __name__ == "__main__":
     if args.is_tensorboard:
         # end wandb
         wandb.finish()
-
-
-# In[32]:
-
-
-per_command_world_counts
-
-
-# In[ ]:
-
-
-
 
