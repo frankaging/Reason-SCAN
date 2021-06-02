@@ -29,7 +29,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 We generated ReaSCAN using our pipeline with fixed random seeds. You can reproduce the version of ReaSCAN we use in the paper by running the pipeline. Additionally, we also update the version we use to a online folder where you can directly download and use as-it-is. Note that, the dataset files are really large. It may take a while to download them.
 
-Our generated data is in [ReaSCAN-v1.0.zip](), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: non-clause (similar to gSCAN), P2: single-clause, P3: two-clause, P4: three-clause) and different compositional splits (see [our paper]() for details about each split).
+Our generated data is in [ReaSCAN-v1.0.zip](https://drive.google.com/file/d/1quUyPHTRdsfdZ80hrGX9p7o-TMdEGJtj/view?usp=sharing), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: non-clause (similar to gSCAN), P2: single-clause, P3: two-clause, P4: three-clause) and different compositional splits (see [our paper]() for details about each split).
 
 By patterns,
 * `ReaSCAN-compositional`: ReaSCAN P1 + P2 + P3, containing train, dev and test sets.
