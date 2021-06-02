@@ -896,10 +896,13 @@ class World(MiniGridEnv):
     def set_mission(self, mission: str):
         self.mission = mission
         
-    def render_simple(self, save_file=None):
+    def render_simple(self, save_file=None, array_only=False):
         """
         Render the world simply in a RGB image
         """
+        if array_only:
+            render_rgb_array = self.render("rgb_array")
+            return render_rgb_array
         import matplotlib.pyplot as plt
         plt.xticks([])
         plt.yticks([])
