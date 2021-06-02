@@ -29,16 +29,16 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 We generated ReaSCAN using our pipeline with fixed random seeds. You can reproduce the version of ReaSCAN we use in the paper by running the pipeline. Additionally, we also update the version we use to a online folder where you can directly download and use as-it-is. Note that, the dataset files are really large. It may take a while to download them.
 
-Our generated data is in [ReaSCAN-v1.0.zip](https://drive.google.com/file/d/1quUyPHTRdsfdZ80hrGX9p7o-TMdEGJtj/view?usp=sharing), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: non-clause (similar to gSCAN), P2: single-clause, P3: two-clause, P4: three-clause) and different compositional splits (see [our paper]() for details about each split).
+Our generated data is in [ReaSCAN-v1.0.zip](https://drive.google.com/file/d/1quUyPHTRdsfdZ80hrGX9p7o-TMdEGJtj/view?usp=sharing), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: Simple (similar to gSCAN), P2: 1-relative-clause, P3: 2-relative-clauses, P4: 3-relative-clauses) and different compositional splits (see [our paper]() for details about each split).
 
 By patterns,
-* `ReaSCAN-compositional`: ReaSCAN P1 + P2 + P3, containing train, dev and test sets.
-* `ReaSCAN-compositional-p1`: ReaSCAN P1, containing train, dev and test sets.
-* `ReaSCAN-compositional-p2`: ReaSCAN P2, containing train, dev and test sets.
-* `ReaSCAN-compositional-p3`: ReaSCAN P3, containing train, dev and test sets.
-* `ReaSCAN-compositional-p1-test`: ReaSCAN P1, containing test set only.
-* `ReaSCAN-compositional-p2-test`: ReaSCAN P2, containing test set only.
-* `ReaSCAN-compositional-p3-test`: ReaSCAN P3, containing test set only.
+* `ReaSCAN-compositional`: ReaSCAN all commands, containing train, dev and test sets.
+* `ReaSCAN-compositional-p1`: ReaSCAN Simple set, containing train, dev and test sets.
+* `ReaSCAN-compositional-p2`: ReaSCAN 1-relative-clause set, containing train, dev and test sets.
+* `ReaSCAN-compositional-p3`: ReaSCAN 2-relative-clauses set, containing train, dev and test sets.
+* `ReaSCAN-compositional-p1-test`: ReaSCAN Simple set, containing test set only.
+* `ReaSCAN-compositional-p2-test`: ReaSCAN 1-relative-clause set, containing test set only.
+* `ReaSCAN-compositional-p3-test`: ReaSCAN 2-relative-clauses set, containing test set only.
 
 By splits,
 * `ReaSCAN-compositional-a1`: ReaSCAN A1 compositional split, containing test set only.
@@ -50,12 +50,12 @@ compositional split, containing test set only.
 * `ReaSCAN-compositional-c`: ReaSCAN C compositional split, containing test set only.
 
 Special split,
-* `ReaSCAN-compositional-p3-rd`: ReaSCAN P3 with random distractors, containing train, dev and test sets.
-* `ReaSCAN-compositional-p4` or `ReaSCAN-compositional-p4-test`: ReaSCAN P4 only, containing test set only.
+* `ReaSCAN-compositional-p3-rd`: ReaSCAN 2-relative-clauses set with random distractors, containing train, dev and test sets.
+* `ReaSCAN-compositional-p4` or `ReaSCAN-compositional-p4-test`: ReaSCAN 3-relative-clauses set only, containing test set only.
 
 ### Regenerate ReaSCAN
 
-You can recreate ReaSCAN shared above using provided scripts. Since generating a full-fleged dataset can take long, you can use our multi-process generator which can generate any subset included in our paper within 20 mininutes with 50 processes. Here are some example code we used to generate P3 dataset. For exact scripts we use to generate our dataset used in the paper, you can refer to ``code/experiments.sh``.
+You can recreate ReaSCAN shared above using provided scripts. Since generating a full-fleged dataset can take long, you can use our multi-process generator which can generate any subset included in our paper within 20 mininutes with 50 processes. Here are some example code we used to generate 2-relative-clauses set dataset. For exact scripts we use to generate our dataset used in the paper, you can refer to ``code/experiments.sh``.
 
 Single process generation,
 ```bash
