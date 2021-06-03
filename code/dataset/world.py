@@ -896,17 +896,17 @@ class World(MiniGridEnv):
     def set_mission(self, mission: str):
         self.mission = mission
         
-    def render_simple(self, save_file=None, array_only=False):
+    def render_simple(self, save_file=None, array_only=False, include_agent=True):
         """
         Render the world simply in a RGB image
         """
         if array_only:
-            render_rgb_array = self.render("rgb_array")
+            render_rgb_array = self.render("rgb_array", include_agent=include_agent)
             return render_rgb_array
         import matplotlib.pyplot as plt
         plt.xticks([])
         plt.yticks([])
-        render_rgb_array = self.render("rgb_array")
+        render_rgb_array = self.render("rgb_array", include_agent=include_agent)
         plt.imshow(render_rgb_array)
         fig = plt.gcf()
         if save_file is not None:

@@ -892,7 +892,11 @@ class MiniGridEnv(gym.Env):
 
         return reward, done, {}
 
-    def render(self, mode='', close=False, highlight=True, tile_size=CELL_PIXELS, attention_weights=[]):
+    def render(
+        self, mode='', close=False, highlight=True, 
+        tile_size=CELL_PIXELS, attention_weights=[], 
+        include_agent=True
+    ):
         """
         Render the whole-grid human view
         """
@@ -925,21 +929,22 @@ class MiniGridEnv(gym.Env):
         self.grid.render(r, tile_size, attention_weights=flat_attention_weights)
 
         # Draw the agent
-        ratio = tile_size / CELL_PIXELS
-        r.push()
-        r.scale(ratio, ratio)
-        r.translate(
-            CELL_PIXELS * (self.agent_pos[0] + 0.5),
-            CELL_PIXELS * (self.agent_pos[1] + 0.5)
-        )
-        r.rotate(self.agent_dir * 90)
-        r.setLineColor(255, 192, 203)
-        r.setColor(255, 192, 203)
-        r.drawPolygon([
-            (-12, 10),
-            (12, 0),
-            (-12, -10)
-        ])
+        if include_agent:
+            ratio = tile_size / CELL_PIXELS
+            r.push()
+            r.scale(ratio, ratio)
+            r.translate(
+                CELL_PIXELS * (self.agent_pos[0] + 0.5),
+                CELL_PIXELS * (self.agent_pos[1] + 0.5)
+            )
+            r.rotate(self.agent_dir * 90)
+            r.setLineColor(255, 192, 203)
+            r.setColor(255, 192, 203)
+            r.drawPolygon([
+                (-12, 10),
+                (12, 0),
+                (-12, -10)
+            ])
         r.pop()
         r.endFrame()
 
