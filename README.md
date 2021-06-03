@@ -25,7 +25,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 ## Dataset
 
-### Off-the-shelves ReaSCAN
+### Off-the-shelf ReaSCAN
 
 We generated ReaSCAN using our pipeline with fixed random seeds. You can reproduce the version of ReaSCAN we use in the paper by running the pipeline. Additionally, we also update the version we use to a online folder where you can directly download and use as-it-is. Note that, the dataset files are really large. It may take a while to download them.
 
