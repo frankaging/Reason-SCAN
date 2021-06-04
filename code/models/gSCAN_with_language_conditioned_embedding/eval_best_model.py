@@ -7,7 +7,7 @@ from dataloader import dataloader
 from model.config import cfg
 from model.model import GSCAN_model
 from model.utils import *
-
+import random
 
 def evaluate(data_iterator, model, max_decoding_steps, pad_idx, sos_idx, eos_idx, max_examples_to_evaluate=None):
     target_accuracies = []
@@ -91,20 +91,12 @@ def train(train_data_path: str, val_data_paths: dict, use_cuda: bool, resume_fro
 
 
 def main(flags, use_cuda):
-    train_data_path = os.path.join(cfg.DATA_DIRECTORY, "train.json")
+    train_data_path = os.path.join(flags.data_dir, "train.json")
 
     test_splits = [
-        'situational_1',
-        'situational_2',
-        'test',
-        'visual',
-        'visual_easier',
-        'dev',
-        'adverb_1',
-        'adverb_2',
-        'contextual',
+        flags.test_split
     ]
-    val_data_paths = {split_name: os.path.join(cfg.DATA_DIRECTORY, split_name + '.json') for split_name in test_splits}
+    val_data_paths = {split_name: os.path.join(flags.data_dir, split_name + '.json') for split_name in test_splits}
 
     if cfg.MODE == "train":
         train(train_data_path=train_data_path, val_data_paths=val_data_paths, use_cuda=use_cuda,
@@ -133,7 +125,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LGCN models for GSCAN")
     parser.add_argument('--load', type=str, help='Path to model')
     parser.add_argument('--baseline', dest='is_baseline', action='store_true')
+    parser.add_argument('--data_dir', type=str, help='Path to dataset')
+    parser.add_argument('--seed', type=int, help='random seeds')
+    parser.add_argument('--test_split', type=str, help='split to evaluate')
     parser.set_defaults(is_baseline=False)
     args = parser.parse_args()
 
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    
     main(args, use_cuda)

@@ -488,6 +488,30 @@ CUDA_VISIBLE_DEVICES=0 python run_reascan.py \
 
 Note that this requires you generate the vocabulary file before hand to save time. You can do so by following scripts provided in the notebook ``ReaSCAN-vocab-generator.ipynb`` in the same folder.
 
+To evaluate this model, you need to run evaluation script and generate all predictions. Note that we follow the original repo, and you can refer to their code for your own implementations. This is the script we run,
+
+```bash
+cd code/models/seq2seq
+
+CUDA_VISIBLE_DEVICES=0 python run_reascan.py \
+ --mode=test \
+ --data_directory=../../../data-files-updated/ReaSCAN-compositional-p1/ \
+ --input_vocab_path=input_vocabulary.txt \
+ --target_vocab_path=target_vocabulary.txt \
+ --attention_type=bahdanau \
+ --no_auxiliary_task \
+ --conditional_attention \
+ --output_directory=../../../testing_logs/p1-random-seed-44/  \
+ --resume_from_file=../../../training_logs/p1-random-seed-44/model_best.pth.tar \
+ --splits=dev \
+ --output_file_name=p1-random-seed-44.json \
+ --max_decoding_steps=120
+```
+Note that this is for ``--splits=dev``, you can change to ``--splits=test`` if you want to evaluate with test splits.
+
+After this script, it will generate predictions in the file in the output directory. Then, you can use our notebook to analyze the results by running the notebook ``performance-analysis.ipynb`` in the model folder!
+
+
 ### GCN + LSTM
 
 This model is published with gSCAN [in this paper](https://arxiv.org/pdf/2009.05552.pdf) from [this repo](https://github.com/HQ01/gSCAN_with_language_conditioned_embedding). You can refer to their repo for details about the model. Here, we already adapt interface changes that are needed to run with ReaSCAN, you can simply run training with following lines,
@@ -495,14 +519,26 @@ This model is published with gSCAN [in this paper](https://arxiv.org/pdf/2009.05
 ```bash
 cd code/models/gSCAN_with_language_conditioned_embedding
 
-CUDA_VISIBLE_DEVICES=1 python main_model.py \
---run all-random-seed-66 \
---data_dir ./parsed_dataset/ \
---seed 66 \
+CUDA_VISIBLE_DEVICES=0 python main_model.py \
+--run p1-random-seed-66 \
+--data_dir ./parsed_dataset-p1/ \
+--seed 44 \
 --txt
 ```
 
 Note that the script above assumed that you already parse the dataset following the parsing helpers provided in the notebook ``read_reascan.ipynb``.
+
+After running this script, all models will be saved in the directory folder. Then, you can evaluate performance of this model using scripts as,
+```bash
+cd code/models/gSCAN_with_language_conditioned_embedding
+
+CUDA_VISIBLE_DEVICES=0 python eval_best_model.py \
+--load ./output/p1-random-seed-44/model_best.pth.tar \
+--data_dir ./parsed_dataset-p1/ \
+--seed 44 \
+--test_split dev
+```
+Note that this is for ``--test_split=dev``, you can change to ``--test_split=test`` if you want to evaluate with test splits.
 
 
 ## Other files
