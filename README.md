@@ -45,8 +45,8 @@ By splits,
 * `ReaSCAN-compositional-a2`: ReaSCAN A2dataset
 compositional split, containing test set only.
 * `ReaSCAN-compositional-a3`: ReaSCAN A3 compositional split, containing test set only.
-* `ReaSCAN-compositional-b1`: ReaSCAN B1 compositional split, containing test set only.
-* `ReaSCAN-compositional-b2`: ReaSCAN B2 compositional split, containing test set only.
+* `ReaSCAN-compositional-b1`: [WARNING] This split is deprecated! Do not use!
+* `ReaSCAN-compositional-b2`: ReaSCAN B compositional split, containing test set only.
 * `ReaSCAN-compositional-c`: ReaSCAN C compositional split, containing test set only.
 
 Special split,
@@ -545,6 +545,9 @@ Note that this is for ``--test_split=dev``, you can change to ``--test_split=tes
 
 In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in various ways. Here are a non-comprehensive list of them with their purposes,
 
+* `code/models/seq2seq/performance-analysis.ipynb`: evaluate model performance.
+* `code/models/seq2seq/ReaSCAN-vocab-generator.ipynb`: generate required vocab files.
+* `code/models/gSCAN_with_language_conditioned_embedding/read_reascan.ipynb`: helper to parse the dataset into model readable format.
 * `code/experiments.sh`: all bash scripts we run for our experiment results.
 * `code/dataset/demo.ipynb`: demo file for all components involved in ReaSCAN data generation process.
 * `code/dataset/unit_tests.ipynb`: unit tests for ReaSCAN. If you want to customized ReaSCAN, please run this unit test before changing anything.
