@@ -551,3 +551,6 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 * `code/dataset/generate_ReaSCAN_splits.ipynb`: generate splits for ReaSCAN.
 * `code/dataset/ReaSCAN-analysis.ipynb`: some analyses we conduct in the paper.
 
+## License
+
+DynaSent has a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
