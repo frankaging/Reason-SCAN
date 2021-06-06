@@ -556,4 +556,4 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 
 ## License
 
-DynaSent has a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+ReaSCAN has a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
