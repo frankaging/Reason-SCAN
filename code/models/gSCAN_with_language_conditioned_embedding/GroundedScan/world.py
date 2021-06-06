@@ -8,26 +8,23 @@ from typing import Dict
 import random
 from itertools import product
 
-from gym_minigrid.minigrid import MiniGridEnv
-from gym_minigrid.minigrid import Grid
-from gym_minigrid.minigrid import IDX_TO_OBJECT
-from gym_minigrid.minigrid import OBJECT_TO_IDX
-from gym_minigrid.minigrid import Circle
-from gym_minigrid.minigrid import Square
-from gym_minigrid.minigrid import Cylinder
-from gym_minigrid.minigrid import Box
-from gym_minigrid.minigrid import DIR_TO_VEC
-from utils import one_hot
-from utils import generate_possible_object_names
-from utils import numpy_array_to_image
+from GroundedScan.gym_minigrid.minigrid import MiniGridEnv
+from GroundedScan.gym_minigrid.minigrid import Grid
+from GroundedScan.gym_minigrid.minigrid import IDX_TO_OBJECT
+from GroundedScan.gym_minigrid.minigrid import OBJECT_TO_IDX
+from GroundedScan.gym_minigrid.minigrid import Circle
+from GroundedScan.gym_minigrid.minigrid import Square
+from GroundedScan.gym_minigrid.minigrid import Cylinder
+from GroundedScan.gym_minigrid.minigrid import DIR_TO_VEC
+from GroundedScan.helpers import one_hot
+from GroundedScan.helpers import generate_possible_object_names
+from GroundedScan.helpers import numpy_array_to_image
 
-from vocabulary import *
-from object_vocabulary import *
 
 SemType = namedtuple("SemType", "name")
 Position = namedtuple("Position", "column row")
 Object = namedtuple("Object", "size color shape")
-PositionedObject = namedtuple("PositionedObject", "object position vector overflow overlap", defaults=(None, None, None, False, False))
+PositionedObject = namedtuple("PositionedObject", "object position vector", defaults=(None, None, None))
 Variable = namedtuple("Variable", "name sem_type")
 fields = ("action", "is_transitive", "manner", "adjective_type", "noun")
 Weights = namedtuple("Weights", fields, defaults=(None, ) * len(fields))
@@ -88,18 +85,106 @@ DIR_VEC_TO_DIR = {
 Command = namedtuple("Command", "action event")
 UNK_TOKEN = 'UNK'
 
-# ReaSCAN supported relations
-Relation = namedtuple("Relation", "name")
-SAME_ROW = Relation("samerow")
-SAME_COL = Relation("samecol")
-SAME_COLOR = Relation("samecolor")
-SAME_SHAPE = Relation("sameshape")
-SAME_SIZE = Relation("samesize")
-SAME_ALL = Relation("sameall")
-IS_INSIDE = Relation("isinside")
-IS_NEXT_TO = Relation("isnextto")
-SIZE_SMALLER = Relation("sizesmaller")
-SIZE_BIGGER = Relation("sizebigger")
+
+class Term(object):
+    """
+    Holds terms that can be parts of logical forms and take as arguments variables that the term can operate over.
+    E.g. for the phrase 'Brutus stabs Caesar' the term is stab(B, C) which will be represented by the string
+    "(stab B:noun C:noun)".
+    """
+
+    def __init__(self, function: str, args: tuple, weights=None, meta=None, specs=None):
+        self.function = function
+        self.arguments = args
+        self.weights = weights
+        self.meta = meta
+        self.specs = specs
+
+    def replace(self, var_to_find: Variable, replace_by_var: Variable):
+        """Find a variable `var_to_find` the arguments and replace it by `replace_by_var`."""
+        return Term(
+            function=self.function,
+            args=tuple(replace_by_var if variable == var_to_find else variable for variable in self.arguments),
+            specs=self.specs,
+            meta=self.meta
+        )
+
+    def to_predicate(self, predicate: dict):
+        assert self.specs is not None
+        output = self.function
+        if self.specs.noun:
+            predicate["noun"] = output
+        elif self.specs.adjective_type == SIZE:
+            predicate["size"] = output
+        elif self.specs.adjective_type == COLOR:
+            predicate["color"] = output
+
+    def __repr__(self):
+        parts = [self.function]
+        for variable in self.arguments:
+            parts.append("{}:{}".format(variable.name, variable.sem_type.name))
+        return "({})".format(" ".join(parts))
+
+
+class LogicalForm(object):
+    """
+    Holds neo-Davidsonian-like logical forms (http://ling.umd.edu//~alxndrw/LectureNotes07/neodavidson_intro07.pdf).
+    An object LogicalForm(variables=[x, y, z], terms=[t1, t2]) may represent
+    lambda x, y, z: and(t1(x, y, z), t2(x, y, z)) (depending on which terms involve what variables).
+    """
+
+    def __init__(self, variables: Tuple[Variable], terms: Tuple[Term]):
+        self.variables = variables
+        self.terms = terms
+        if len(variables) > 0:
+            self.head = variables[0]
+
+    def bind(self, bind_var: Variable):
+        """
+        Bind a variable to its head, e.g for 'kick the ball', 'kick' is the head and 'the ball' will be bind to it.
+        Or in the case of NP -> JJ NP, bind the JJ (adjective) to the head of the noun-phrase.
+        E.g. 'the big red square', bind 'big' to 'square'.
+        :param bind_var:
+        :return:
+        """
+        sub_var, variables_out = self.variables[0], self.variables[1:]
+        # assert sub_var.sem_type == bind_var.sem_type
+        terms_out = [term.replace(sub_var, bind_var) for term in self.terms]
+        return LogicalForm(variables=(bind_var,) + variables_out, terms=tuple(terms_out))
+
+    def select(self, variables: list, exclude=frozenset()):
+        """Select and return the sub-logical form of the variables in the variables list."""
+        queue = list(variables)
+        used_vars = set()
+        terms_out = []
+        while len(queue) > 0:
+            var = queue.pop()
+            deps = [term for term in self.terms if term.function not in exclude and term.arguments[0] == var]
+            for term in deps:
+                terms_out.append(term)
+                used_vars.add(var)
+                for variable in term.arguments[1:]:
+                    if variable not in used_vars:
+                        queue.append(variable)
+
+        vars_out = [var for var in self.variables if var in used_vars]
+        terms_out = list(set(terms_out))
+        return LogicalForm(tuple(vars_out), tuple(terms_out))
+
+    def to_predicate(self):
+        assert len(self.variables) == 1
+        predicate = {"noun": "", "size": "", "color": ""}
+        [term.to_predicate(predicate) for term in self.terms]
+        object_str = ""
+        if predicate["color"]:
+            object_str += ' ' + predicate["color"]
+        object_str += ' ' + predicate["noun"]
+        object_str = object_str.strip()
+        return object_str, predicate
+
+    def __repr__(self):
+        return "LF({})".format(" ^ ".join([repr(term) for term in self.terms]))
+
 
 def object_to_repr(object: Object) -> dict:
     return {
@@ -154,11 +239,6 @@ class Situation(object):
         self.placed_objects = placed_objects
         self.carrying = carrying  # The object the agent is carrying
         self.target_object = target_object
-        
-        # TODO: some validation checks here?
-        # 1. object collisions & object and agent collisions
-        # 2. boundary checks
-        
 
     @property
     def distance_to_target(self):
@@ -240,6 +320,120 @@ class Situation(object):
         return not len(result) > 0
 
 
+class ObjectVocabulary(object):
+    """
+    Constructs an object vocabulary. Each object will be calculated by the following:
+    [size color shape] and where size is on an ordinal scale of 1 (smallest) to 4 (largest),
+    colors and shapes are orthogonal vectors [0 1] and [1 0] and the result is a concatenation:
+    e.g. the biggest red circle: [4 0 1 0 1], the smallest blue square: [1 1 0 1 0]
+    """
+    SIZES = list(range(1, 5))
+
+    def __init__(self, shapes: List[str], colors: List[str], min_size: int, max_size: int):
+        """
+        :param shapes: a list of string names for nouns.
+        :param colors: a list of string names for colors.
+        :param min_size: minimum object size
+        :param max_size: maximum object size
+        """
+        assert self.SIZES[0] <= min_size <= max_size <= self.SIZES[-1], \
+            "Unsupported object sizes (min: {}, max: {}) specified.".format(min_size, max_size)
+        self._min_size = min_size
+        self._max_size = max_size
+
+        # Translation from shape nouns to shapes.
+        self._shapes = set(shapes)
+        self._n_shapes = len(self._shapes)
+        self._colors = set(colors)
+        self._n_colors = len(self._colors)
+        self._idx_to_shapes_and_colors = shapes + colors
+        self._shapes_and_colors_to_idx = {token: i for i, token in enumerate(self._idx_to_shapes_and_colors)}
+        self._sizes = list(range(min_size, max_size + 1))
+
+        # Also size specification for 'average' size, e.g. if adjectives are small and big, 3 sizes exist.
+        self._n_sizes = len(self._sizes)
+        assert (self._n_sizes % 2) == 0, "Please specify an even amount of sizes "\
+                                         " (needs to be split in 2 classes.)"
+        self._middle_size = (max_size + min_size) // 2
+
+        # Make object classes.
+        self._object_class = {i: "light" for i in range(min_size, self._middle_size + 1)}
+        self._heavy_weights = {i: "heavy" for i in range(self._middle_size + 1, max_size + 1)}
+        self._object_class.update(self._heavy_weights)
+
+        # Prepare object vectors.
+        self._object_vector_size = self._n_shapes + self._n_colors + self._n_sizes
+        self._object_vectors = self.generate_objects()
+        self._possible_colored_objects = set([color + ' ' + shape for color, shape in itertools.product(self._colors,
+                                                                                                        self._shapes)])
+
+    def has_object(self, shape: str, color: str, size: int):
+        return shape in self._shapes and color in self._colors and size in self._sizes
+
+    def object_in_class(self, size: int):
+        return self._object_class[size]
+
+    @property
+    def num_object_attributes(self):
+        """Dimension of object vectors is one hot for shapes and colors + 1 ordinal dimension for size."""
+        return len(self._idx_to_shapes_and_colors) + self._n_sizes
+
+    @property
+    def smallest_size(self):
+        return self._min_size
+
+    @property
+    def largest_size(self):
+        return self._max_size
+
+    @property
+    def object_shapes(self):
+        return self._shapes.copy()
+
+    @property
+    def object_sizes(self):
+        return self._sizes.copy()
+
+    @property
+    def object_colors(self):
+        return self._colors.copy()
+
+    @property
+    def all_objects(self):
+        return product(self.object_sizes, self.object_colors, self.object_shapes)
+
+    def sample_size(self):
+        return random.choice(self._sizes)
+
+    def sample_color(self):
+        return random.choice(list(self._colors))
+
+    def get_object_vector(self, shape: str, color: str, size: int) -> np.ndarray:
+        assert self.has_object(shape, color, size), "Trying to get an unavailable object vector from the vocabulary/"
+        return self._object_vectors[shape][color][size]
+
+    def generate_objects(self) -> Dict[str, Dict[str, Dict[str, np.ndarray]]]:
+        """
+        An object vector is built as follows: the first entry is an ordinal entry defining the size (from 1 the smallest
+        to 4 the largest), then 2 entries define a one-hot vector over shape, the last two entries define a one-hot
+        vector over color. A red circle of size 1 could then be: [1 0 1 0 1], meaning a blue square of size 2 would be
+        [2 1 0 1 0].
+        """
+        object_to_object_vector = {}
+        for size, color, shape in itertools.product(self._sizes, self._colors, self._shapes):
+            object_vector = one_hot(self._object_vector_size, size - 1) + \
+                            one_hot(self._object_vector_size, self._shapes_and_colors_to_idx[color] + self._n_sizes) + \
+                            one_hot(self._object_vector_size, self._shapes_and_colors_to_idx[shape] + self._n_sizes)
+            # object_vector = np.concatenate(([size], object_vector))
+            if shape not in object_to_object_vector.keys():
+                object_to_object_vector[shape] = {}
+            if color not in object_to_object_vector[shape].keys():
+                object_to_object_vector[shape][color] = {}
+            object_to_object_vector[shape][color][size] = object_vector
+
+        return object_to_object_vector
+
+
 class World(MiniGridEnv):
     """
     Wrapper class to execute actions in a world state. Connected to minigrid.py in gym_minigrid for visualizations.
@@ -248,7 +442,7 @@ class World(MiniGridEnv):
     The world can be cleared with clear_situation().
     """
 
-    AVAILABLE_SHAPES = {"circle", "square", "cylinder", "box"}
+    AVAILABLE_SHAPES = {"circle", "square", "cylinder"}
     AVAILABLE_COLORS = {"red", "blue", "green", "yellow"}
 
     def __init__(self, grid_size: int, shapes: List[str], colors: List[str], object_vocabulary: ObjectVocabulary,
@@ -333,32 +527,11 @@ class World(MiniGridEnv):
             return Cylinder(object_spec.color, size=object_spec.size, vector_representation=object_vector,
                             object_representation=object_spec,
                             weight=self._object_vocabulary.object_in_class(object_spec.size))
-        elif object_spec.shape == "box":
-            return Box(object_spec.color, size=object_spec.size, vector_representation=object_vector,
-                       object_representation=object_spec,
-                       weight=self._object_vocabulary.object_in_class(object_spec.size))
         else:
             raise ValueError("Trying to create an object shape {} that is not implemented.".format(object_spec.shape))
 
-    def position_taken(self, position: Position, condition="normal"):
-        exist_cell = self.grid.get(position.column, position.row)
-        if exist_cell is None:
-            return False
-        else:
-            if isinstance(exist_cell, list):
-                return True
-            else:
-                if exist_cell.type == "box":
-                    if condition == "normal":
-                        return False
-                    elif condition == "box":
-                        return True # box cannot be on top of another box!
-                else:
-                    if condition == "box":
-                        return False # It is ok if you are placing a box!
-                    else:
-                        return True
-        assert False
+    def position_taken(self, position: Position):
+        return self.grid.get(position.column, position.row) is not None
 
     def within_grid(self, position: Position):
         if 0 <= position.row < self.grid_size and 0 <= position.column < self.grid_size:
@@ -380,44 +553,6 @@ class World(MiniGridEnv):
         sampled_position = random.sample(available_positions, 1).pop()
         return Position(row=sampled_position[0], column=sampled_position[1])
 
-    def sample_position_box(self, box_size) -> Position:
-        available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size-box_size+1)),
-                                                                            list(range(self.grid_size-box_size+1)))
-                               if (col, row) not in self._occupied_positions]
-        sampled_position = random.sample(available_positions, 1).pop()
-        return Position(row=sampled_position[0], column=sampled_position[1])
-    
-    def sample_position_complex(self, condition="normal", box_size=4, sample_one=True):
-        """
-        This is a complex position sampling methods, which is based on
-        your conditions. If this is a box, you need to pass in box
-        size to correctly sample a valid position.
-        
-        normal: this is a regular object sampling.
-        box: this is for a box type.
-        agent: this is for agent.
-        
-        if debug, we will return all positions, not just a single sampled one!
-        """
-
-        if condition == "normal":
-            available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size)),
-                                                                                list(range(self.grid_size)))]
-        elif condition == "box":
-            available_positions = [(row, col) for row, col in itertools.product(list(range(self.grid_size-box_size+1)),
-                                                                                list(range(self.grid_size-box_size+1)))]
-        filtered_positions = []
-        for (row, col) in available_positions:
-            proposed_position = Position(row=row, column=col)
-            if not self.position_taken(proposed_position, condition=condition):
-                filtered_positions.append(proposed_position)
-        if not sample_one:
-            return filtered_positions
-        if len(filtered_positions) < 1:
-            return -1
-        sampled_position = random.sample(filtered_positions, 1).pop()
-        return sampled_position
-    
     def min_distance_from_edge(self, position: Position):
         row_distance = min(self.grid_size - position.row, position.row)
         column_distance = min(self.grid_size - position.column, position.column)
@@ -456,56 +591,29 @@ class World(MiniGridEnv):
         if not self.within_grid(position):
             raise IndexError("Trying to place object '{}' outside of grid of size {}.".format(
                 object_spec.shape, self.grid_size))
-        
-        # If this is a box type, we need to make sure it is not overflowing to outside of the grid world.
-        if object_spec.shape == "box":
-            if 0 <= position.row < self.grid_size-object_spec.size+1 and 0 <= position.column < self.grid_size-object_spec.size+1:
-                pass
-            else:
-                raise IndexError("Trying to place a size={} box in row={}, col={} which is outside of grid of size {}.".format(
-                    object_spec.size, position.row, position.column, self.grid_size))
-        
-        # Double box is not allowed here!
-        if object_spec.shape == "box":
-            if self.position_taken(position, condition="box"):
-                print("WARNING: attempt to place two boxes at location ({}, {}), but overlapping boxes not "
-                      "supported. Skipping object.".format(position.row, position.column))
-                return -1
-                # raise IndexError("Trying to allocate two boxes in the same position. Sampling strategy has a bug!")
         # Object already placed at this location
+        if self.position_taken(position):
+            print("WARNING: attempt to place two objects at location ({}, {}), but overlapping objects not "
+                  "supported. Skipping object.".format(position.row, position.column))
         else:
-            if self.position_taken(position, condition="normal"):
-                print("WARNING: attempt to place two objects at location ({}, {}), but overlapping objects not "
-                      "supported if it is for a box. Skipping object.".format(position.row, position.column))
-                raise IndexError("Trying to allocate two non-box objects in the same position. Sampling strategy has a bug!")
+            object_vector = self._object_vocabulary.get_object_vector(shape=object_spec.shape, color=object_spec.color,
+                                                                      size=object_spec.size)
+            positioned_object = PositionedObject(object=object_spec, position=position, vector=object_vector)
+            self.place_obj(self.create_object(object_spec, object_vector, target=target),
+                           top=(position.column, position.row), size=(1, 1))
 
-        object_vector = self._object_vocabulary.get_object_vector(shape=object_spec.shape, color=object_spec.color,
-                                                                  size=object_spec.size)
-        positioned_object = PositionedObject(object=object_spec, position=position, vector=object_vector)
-        self.place_obj(self.create_object(object_spec, object_vector, target=target),
-                       top=(position.column, position.row), size=(1, 1))
+            # Add to list that keeps track of all objects currently positioned on the grid.
+            self._placed_object_list.append(positioned_object)
 
-        # Add to list that keeps track of all objects currently positioned on the grid.
-        self._placed_object_list.append(positioned_object)
+            # Adjust the object lookup table accordingly.
+            self._add_object_to_lookup_table(positioned_object)
 
-        # Adjust the object lookup table accordingly.
-        self._add_object_to_lookup_table(positioned_object)
+            # Add to occupied positions:
+            self._occupied_positions.add((position.column, position.row))
 
-        # Add to occupied positions:
-        self._occupied_positions.add((position.column, position.row))
+            if target:
+                self._target_object = positioned_object
 
-        if target:
-            self._target_object = positioned_object
-
-    def _occupy_by_box(self, query_position):
-        if "box" in self._object_lookup_table.keys():
-            for _, positions in self._object_lookup_table["box"].items():
-                for position in positions:
-                    if position.column == query_position.column and position.row == query_position.row:
-                        # this is a box!
-                        return True
-        return False
-                
     def _add_object_to_lookup_table(self, positioned_object: PositionedObject):
         object_size = positioned_object.object.size
         object_color = positioned_object.object.color
@@ -529,8 +637,6 @@ class World(MiniGridEnv):
         target_object = None
         for i, positioned_object in enumerate(self._placed_object_list):
             if positioned_object.position == target_position:
-                if positioned_object.object.shape == "box":
-                    continue # box is not movable in ReaSCAN!
                 target_object = self._placed_object_list[i]
                 del self._placed_object_list[i]
                 break
@@ -540,8 +646,6 @@ class World(MiniGridEnv):
 
         # remove from gym grid
         self.grid.get(target_position.column, target_position.row)
-        # I don't think we need this! This results in double delete!
-        # No, I am wrong. : )
         self.grid.set(target_position.column, target_position.row, None)
 
         self._occupied_positions.remove((target_position.column, target_position.row))
@@ -592,16 +696,6 @@ class World(MiniGridEnv):
 
     def push_or_pull_object(self, direction: Direction, primitive_command: str):
         current_object = self.grid.get(*self.agent_pos)
-        # what to pick up, we might need to do something here for the box case!
-        if isinstance(current_object, list):
-            if len(current_object) == 2:
-                # there is a box! we cannot pick up box for now
-                # we need to pick up the other objects.
-                if current_object[0].type != "box":
-                    current_object = current_object[0]
-                else:
-                    current_object = current_object[1]
-
         if not current_object:
             self._observed_commands.append(primitive_command)
             self._observed_situations.append(self.get_current_situation())
@@ -612,9 +706,7 @@ class World(MiniGridEnv):
                 new_position = Position(column=new_position[0], row=new_position[1])
                 # If the new position isn't occupied by another object, push it forward.
                 if self.within_grid(new_position):
-                    next_cell = self.grid.get(new_position[0], new_position[1])
-                    if not next_cell or \
-                       (not isinstance(next_cell, list) and next_cell.type == "box"):
+                    if not self.grid.get(new_position[0], new_position[1]):
                         self.move_object(Position(column=self.agent_pos[0], row=self.agent_pos[1]), new_position)
                         if primitive_command == "push":
                             self.take_step_in_direction(direction, primitive_command)
@@ -694,11 +786,7 @@ class World(MiniGridEnv):
         next_cell = self.agent_pos + DIR_TO_VEC[DIR_TO_INT[direction]]
         if self.within_grid(Position(column=next_cell[0], row=next_cell[1])):
             next_cell_object = self.grid.get(*next_cell)
-            if next_cell_object != None: 
-                if not isinstance(next_cell_object, list) and next_cell_object.type == "box":
-                    return True
-            else:
-                return not next_cell_object
+            return not next_cell_object
         else:
             return False
 
@@ -895,21 +983,4 @@ class World(MiniGridEnv):
 
     def set_mission(self, mission: str):
         self.mission = mission
-        
-    def render_simple(self, save_file=None, array_only=False, include_agent=True):
-        """
-        Render the world simply in a RGB image
-        """
-        if array_only:
-            render_rgb_array = self.render("rgb_array", include_agent=include_agent)
-            return render_rgb_array
-        import matplotlib.pyplot as plt
-        plt.xticks([])
-        plt.yticks([])
-        render_rgb_array = self.render("rgb_array", include_agent=include_agent)
-        plt.imshow(render_rgb_array)
-        fig = plt.gcf()
-        if save_file is not None:
-            fig.savefig(save_file, dpi=500)
-        plt.show()
-        return render_rgb_array
+

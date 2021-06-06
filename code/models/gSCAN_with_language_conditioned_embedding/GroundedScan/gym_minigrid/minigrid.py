@@ -5,8 +5,6 @@ import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
-from gym_minigrid.rendering import Renderer
-
 # Size in pixels of a cell in the full-scale human view
 CELL_PIXELS = 60
 
@@ -43,9 +41,7 @@ OBJECT_TO_IDX = {
     'circle': 2,
     'cylinder': 3,
     'square': 4,
-    'box': 5,
-    'dax': 6,
-    'agent': 7,
+    'agent': 5,
 }
 
 IDX_TO_OBJECT = dict(zip(OBJECT_TO_IDX.values(), OBJECT_TO_IDX.keys()))
@@ -132,21 +128,15 @@ class Square(WorldObj):
                  weight="light"):
         super().__init__('square', color, size, vector_representation=vector_representation,
                          object_representation=object_representation, target=target, weight=weight)
-        # TODO: generalize sizes
-        self.drawing_offset_per_size = 2
 
     def render(self, r):
         self._set_color(r)
 
         # TODO: max_size is 4 here hardcoded
-        if self.size == 4:
-            width = (CELL_PIXELS * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
-        else:
-            width = (CELL_PIXELS * (self.size / 4))
         r.drawPolygon([
-            (0, width),
-            (width, width),
-            (width, 0),
+            (0, CELL_PIXELS * (self.size / 4)),
+            (CELL_PIXELS * (self.size / 4), CELL_PIXELS * (self.size / 4)),
+            (CELL_PIXELS * (self.size / 4), 0),
             (0, 0)
         ])
 
@@ -156,9 +146,6 @@ class Square(WorldObj):
     def can_push(self):
         return True
 
-    def can_object_overlap(self):
-        return False
-    
     def push(self):
         self.momentum += 1
         if self.momentum >= self.momentum_threshold:
@@ -173,25 +160,16 @@ class Cylinder(WorldObj):
         super(Cylinder, self).__init__('cylinder', color, size, vector_representation,
                                        object_representation=object_representation, weight=weight)
         # TODO: generalize sizes
-        self.drawing_offset_per_size = 2
 
     def can_pickup(self):
         return True
 
-    def can_object_overlap(self):
-        return False
-    
     def render(self, r):
         self._set_color(r)
 
         # Vertical quad
-        if self.size == 4:
-            parallelogram_width = ((CELL_PIXELS / 2) * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
-            parallelogram_height = (CELL_PIXELS * (self.size / 4)) - (self.drawing_offset_per_size * self.size)
-        else:
-            parallelogram_width = ((CELL_PIXELS / 2) * (self.size / 4))
-            parallelogram_height = (CELL_PIXELS * (self.size / 4))
-
+        parallelogram_width = (CELL_PIXELS / 2) * (self.size / 4)
+        parallelogram_height = CELL_PIXELS * (self.size / 4)
         r.drawPolygon([
             (CELL_PIXELS / 2, 0),
             (CELL_PIXELS / 2 + parallelogram_width, 0),
@@ -216,23 +194,16 @@ class Circle(WorldObj):
                  weight="light"):
         super(Circle, self).__init__('circle', color, size, vector_representation,
                                      object_representation=object_representation, target=target, weight=weight)
-        self.drawing_offset_per_size = 0.5
+
     def can_pickup(self):
         return True
 
     def can_push(self):
         return True
 
-    def can_object_overlap(self):
-        return False
-
     def render(self, r):
         self._set_color(r)
-        if self.size == 4:
-            radius = CELL_PIXELS // 10 * self.size - (self.drawing_offset_per_size * self.size)
-        else:
-            radius = CELL_PIXELS // 10 * self.size
-        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, radius)
+        r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
 
     def push(self):
         self.momentum += 1
@@ -242,83 +213,6 @@ class Circle(WorldObj):
         else:
             return False
 
-        
-class Box(WorldObj):
-    """
-    Box is not movable or pickable. Note that Box can be overflow and overlap!
-    """
-    def __init__(self, color='blue', size=1, vector_representation=None, object_representation=None, target=False,
-                 weight="light", contains=None):
-        super(Box, self).__init__('box', color, size, vector_representation,
-                                  object_representation=object_representation, target=target, weight=weight)
-        self.contains = contains
-        self.border_color = color
-
-    def can_pickup(self):
-        return False
-
-    def can_push(self):
-        return False
-
-    def can_object_overlap(self):
-        return True
-    
-    def can_contain(self):
-        """Can this contain another object?"""
-        return False
-    
-    def _set_color(self, r):
-        """
-        This is special for box which is only to draw the border color.
-        """
-        # set border color only
-        c = COLORS[self.color]
-        border_color = COLORS[self.border_color]
-        r.setLineColor(border_color[0], border_color[1], border_color[2])
-    
-    def render(self, r):
-        self._set_color(r)
-        r.drawRect(0,0,
-                   CELL_PIXELS * self.size, 
-                   CELL_PIXELS * self.size, line_width=8)
-
-    def push(self):
-        self.momentum += 1
-        if self.momentum >= self.momentum_threshold:
-            self.momentum = 0
-            return True
-        else:
-            return False
-
-        
-class Dax(WorldObj):
-    def __init__(self, color='blue', size=1, vector_representation=None, object_representation=None, target=False,
-                 weight="light"):
-        super(Dax, self).__init__('dax', color, size, vector_representation,
-                                  object_representation=object_representation, target=target, weight=weight)
-
-    def can_pickup(self):
-        return True
-
-    def can_push(self):
-        return True
-
-    def can_object_overlap(self):
-        return False
-    
-    def render(self, r):
-        self._set_color(r)
-        raise NotImplementedError("Rendering for DAX is not implemented yet!")
-        # r.drawCircle(CELL_PIXELS * 0.5, CELL_PIXELS * 0.5, CELL_PIXELS // 10 * self.size)
-
-    def push(self):
-        self.momentum += 1
-        if self.momentum >= self.momentum_threshold:
-            self.momentum = 0
-            return True
-        else:
-            return False
-        
 
 class Grid:
     """
@@ -361,46 +255,10 @@ class Grid:
         from copy import deepcopy
         return deepcopy(self)
 
-    def set(self, i, j, v, overlapping=False):
+    def set(self, i, j, v):
         assert i >= 0 and i < self.width
         assert j >= 0 and j < self.height
-        if self.grid[j * self.width + i] == None:
-            self.grid[j * self.width + i] = v
-        else:
-            
-            # there are multiple cases
-            if v == None:
-                # we are removing some objects, this is likely due to that
-                # the object is moving!
-                old_v = self.grid[j * self.width + i]
-                
-                if isinstance(old_v, list):
-                    # Here you remove the non box type object!
-                    if old_v[0].type == "box":
-                        old_v = old_v[0] # we keep box
-                    else:
-                        old_v = old_v[1]
-                    self.grid[j * self.width + i] = old_v
-                else:
-                    if old_v.type == "box":
-                        pass # This must be the case that you are placing agent. Just fail through!
-                    else:
-                        self.grid[j * self.width + i] = None
-            else:
-                # there two cases
-                # if it is already a list, i am not sure if
-                # you can even add it.
-                old_v = self.grid[j * self.width + i]
-                if isinstance(old_v, list):
-                    # you cannot!
-                    assert False
-                else:
-                    if old_v.type == "box" and v.type == "box":
-                        assert False
-                    if overlapping or old_v.type == "box" or v.type == "box":
-                        self.grid[j * self.width + i] = [old_v, v]
-                    else:
-                        assert False
+        self.grid[j * self.width + i] = v
 
     def get(self, i, j):
         assert i >= 0 and i < self.width
@@ -512,18 +370,10 @@ class Grid:
                     r.fillRect(i * CELL_PIXELS, j * CELL_PIXELS, CELL_PIXELS, CELL_PIXELS, r=color, g=color, b=color)
                 if cell == None:
                     continue
-                if isinstance(cell, list):
-                    for sub_cell in cell:
-                        if sub_cell is not None: # You know this can an agent as well! : )
-                            r.push()
-                            r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
-                            sub_cell.render(r)
-                            r.pop()
-                else:
-                    r.push()
-                    r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
-                    cell.render(r)
-                    r.pop()
+                r.push()
+                r.translate(i * CELL_PIXELS, j * CELL_PIXELS)
+                cell.render(r)
+                r.pop()
 
         r.pop()
 
@@ -537,11 +387,7 @@ class Grid:
                 grid_cell = self.get(col, row)
                 empty_representation = np.zeros(self._num_attributes_object + 1 + 4)
                 if grid_cell:
-                    if isinstance(grid_cell, list):
-                        empty_representation[:-5] = grid_cell[0].vector_representation + grid_cell[1].vector_representation
-                        
-                    else:
-                        empty_representation[:-5] = grid_cell.vector_representation
+                    empty_representation[:-5] = grid_cell.vector_representation
 
                 # Set agent feature to 1 for the grid cell with the agent and add it's direction in one-hot form.
                 if col == agent_column and row == agent_row:
@@ -578,7 +424,7 @@ class MiniGridEnv(gym.Env):
         # Done completing task
         done = 6
 
-    def __init__(self, grid_size=None, width=None, height=None, max_steps=100, seed=42):
+    def __init__(self, grid_size=None, width=None, height=None, max_steps=100, seed=1337):
         # Can't set both grid_size and width/height
         if grid_size:
             assert width == None and height == None
@@ -662,8 +508,6 @@ class MiniGridEnv(gym.Env):
             'circle': 'A',
             'square': 'B',
             'cylinder': 'C',
-            'box': 'D',
-            'dax': 'E',
         }
 
         # Map agent's direction to short string
@@ -684,12 +528,7 @@ class MiniGridEnv(gym.Env):
                 if not c:
                     str += '  '
                     continue
-                if len(c) > 1:
-                    # very hacky way assuming ReaSCAN is not using this anyway!
-                    for sub_c in c:
-                        str += OBJECT_TO_STR[sub_c.type] + sub_c.color[0].upper()
-                else:
-                    str += OBJECT_TO_STR[c.type] + c.color[0].upper()
+                str += OBJECT_TO_STR[c.type] + c.color[0].upper()
             if j < self.grid.height - 1:
                 str += '\n'
         return str
@@ -699,12 +538,12 @@ class MiniGridEnv(gym.Env):
 
     def _rand_int(self, low, high):
         """
-        Generate random integer in [low,high]
+        Generate random integer in [low,high[
         """
 
         return self.np_random.randint(low, high)
 
-    def place_obj(self, obj, top=None, size=None, reject_fn=None, max_tries=2):
+    def place_obj(self, obj, top=None, size=None, reject_fn=None, max_tries=math.inf):
         """
         Place an object at an empty position in the grid
 
@@ -740,34 +579,15 @@ class MiniGridEnv(gym.Env):
 
             # Don't place the object on top of another object
             if self.grid.get(*pos) != None:
-                exist_cell = self.grid.get(*pos)
-                # All the following negative cases should never reach!
-                # otherwise you should debug your main sampling code.
-                if isinstance(exist_cell, list):
-                    assert False # you should not reach this point!
-                if obj is not None:
-                    if exist_cell.type != "box" and obj.type != "box":
-                        assert False # you should not reach this point!
-                    elif exist_cell.type == "box" and obj.type == "box":
-                        assert False # you should not reach this point!
-                    else:
-                        break
-                else:
-                    if exist_cell.type != "box":
-                        assert False # you should not reach this point!
-                    else:
-                        break
-                    
+                continue
+
             # Check if there is a filtering criterion
             if reject_fn and reject_fn(self, pos):
                 continue
 
             break
 
-        if obj is not None and not obj.can_object_overlap():
-            self.grid.set(*pos, obj)
-        else:
-            self.grid.set(*pos, obj, overlapping=True)
+        self.grid.set(*pos, obj)
 
         if obj is not None:
             obj.init_pos = pos
@@ -847,11 +667,6 @@ class MiniGridEnv(gym.Env):
 
             # Get the contents of the cell in front of the agent
             fwd_cell = self.grid.get(*fwd_pos)
-            if isinstance(fwd_cell, list):
-                if fwd_cell[0].type == "box":
-                    fwd_cell = fwd_cell[1]
-                else:
-                    fwd_cell = fwd_cell[0] # This is for the box case!
             if fwd_cell == None or fwd_cell.can_overlap():
                 self.agent_pos = fwd_pos
             if fwd_cell != None and fwd_cell.type == 'goal':
@@ -862,11 +677,6 @@ class MiniGridEnv(gym.Env):
 
         # Pick up an object
         elif action == self.actions.pickup:
-            if isinstance(current_cell, list):
-                if current_cell[0].type == "box":
-                    current_cell = current_cell[1]
-                else:
-                    current_cell = current_cell[0]
             if current_cell.can_pickup():
                 if self.carrying is None:
                     self.carrying = current_cell
@@ -892,11 +702,7 @@ class MiniGridEnv(gym.Env):
 
         return reward, done, {}
 
-    def render(
-        self, mode='', close=False, highlight=True, 
-        tile_size=CELL_PIXELS, attention_weights=[], 
-        include_agent=True
-    ):
+    def render(self, mode='', close=False, highlight=True, tile_size=CELL_PIXELS, attention_weights=[]):
         """
         Render the whole-grid human view
         """
@@ -907,7 +713,7 @@ class MiniGridEnv(gym.Env):
             return
 
         if self.grid_render is None or self.grid_render.window is None or (self.grid_render.width != self.width * tile_size):
-            # from gym_minigrid.rendering import Renderer
+            from GroundedScan.gym_minigrid.rendering import Renderer
             self.grid_render = Renderer(
                 self.width * tile_size,
                 self.height * tile_size,
@@ -929,22 +735,21 @@ class MiniGridEnv(gym.Env):
         self.grid.render(r, tile_size, attention_weights=flat_attention_weights)
 
         # Draw the agent
-        if include_agent:
-            ratio = tile_size / CELL_PIXELS
-            r.push()
-            r.scale(ratio, ratio)
-            r.translate(
-                CELL_PIXELS * (self.agent_pos[0] + 0.5),
-                CELL_PIXELS * (self.agent_pos[1] + 0.5)
-            )
-            r.rotate(self.agent_dir * 90)
-            r.setLineColor(255, 192, 203)
-            r.setColor(255, 192, 203)
-            r.drawPolygon([
-                (-12, 10),
-                (12, 0),
-                (-12, -10)
-            ])
+        ratio = tile_size / CELL_PIXELS
+        r.push()
+        r.scale(ratio, ratio)
+        r.translate(
+            CELL_PIXELS * (self.agent_pos[0] + 0.5),
+            CELL_PIXELS * (self.agent_pos[1] + 0.5)
+        )
+        r.rotate(self.agent_dir * 90)
+        r.setLineColor(255, 192, 203)
+        r.setColor(255, 192, 203)
+        r.drawPolygon([
+            (-12, 10),
+            (12, 0),
+            (-12, -10)
+        ])
         r.pop()
         r.endFrame()
 
