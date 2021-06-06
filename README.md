@@ -4,6 +4,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 ## Contents
 
 * [Citation](#Citation)
+* [Example](#Example)
 * [Dataset](#Dataset)
 * [Data format](#data-format)
 * [Models](#models)
@@ -22,6 +23,11 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
     url={},
     year={2021}}
 ```
+
+## Example
+
+<img src="https://i.ibb.co/Yfx5WTj/overview.png" width="800">
+  - Four command-world pairs for different command patterns. Our simple command is equivalent to [gSCAN](https://arxiv.org/abs/2003.05161). **RD** means distractors are randomly sampled. Referent targets shaded in red with distractors are shaded in blue, and are highlighted by green dash lines.
 
 ## Dataset
 
