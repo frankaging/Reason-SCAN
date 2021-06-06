@@ -149,3 +149,5 @@ dmypy.json
 
 # Other
 gscan_exploration/*
+.vscode/*
+*action_lengths.txt
