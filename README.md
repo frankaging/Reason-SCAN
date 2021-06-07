@@ -50,8 +50,7 @@ By patterns,
 
 By splits,
 * `ReaSCAN-compositional-a1`: ReaSCAN A1 compositional split, containing test set only.
-* `ReaSCAN-compositional-a2`: ReaSCAN A2dataset
-compositional split, containing test set only.
+* `ReaSCAN-compositional-a2`: ReaSCAN A2 compositional split, containing test set only.
 * `ReaSCAN-compositional-a3`: ReaSCAN A3 compositional split, containing test set only.
 * `ReaSCAN-compositional-b1`: [WARNING] This split is deprecated! Do not use!
 * `ReaSCAN-compositional-b2`: ReaSCAN B compositional split, containing test set only.
