@@ -478,11 +478,11 @@ Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human
 
 ReaSCAN in not perfect. In fact, we document a list of artifacts in our paper. Please see our **Appendix B** for details. Please read this before you use ReaSCAN. Here is a short summary of that section in bullet points:
 
-* Non-comprehensive Linguistic Structures: Commands from ReaSCAN follow a specific linguistic template and are non-comprehensive in covering all linguistic structures. 
-* Non-comprehensive Distractors: ReaSCAN is not able to cover all possible distractors to make sure every part of the command is neccesary to resolve the referring expression.
-* Shapes and Relations Biases: The frequency distributions of shapes and relations may be biased due to the generation program.
-* Self-exclusiveness: We assume every object mention in the command matches to a unique object in the world.
-* Other Induced Artifacts: We also discuss frequency distributions of verbs, adverbs, agent facing directions, agent-target relative directions, etc..
+* **Non-comprehensive Linguistic Structures**: Commands from ReaSCAN follow a specific linguistic template and are non-comprehensive in covering all linguistic structures. 
+* **Non-comprehensive Distractors**: ReaSCAN is not able to cover all possible distractors to make sure every part of the command is neccesary to resolve the referring expression.
+* **Shapes and Relations Biases**: The frequency distributions of shapes and relations may be biased due to the generation program.
+* **Self-exclusiveness**: We assume every object mention in the command matches to a unique object in the world.
+* **Other Induced Artifacts**: We also discuss frequency distributions of verbs, adverbs, agent facing directions, agent-target relative directions, etc..
 
 
 ## Models
