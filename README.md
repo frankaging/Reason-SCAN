@@ -9,7 +9,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 * [Data format](#data-format)
 * [Models](#models)
 * [Other files](#other-files)
-* [ReaSCAN As Abstract Reasoning Challenges](#reascan-as-abstract-reasoning-challenges)
+* [ReaSCAN as an Abstract Reasoning Challenge](#reascan-as-an-abstract-reasoning-challenge)
 * [Dataset Artifacts](#Dataset-artifacts)
 * [License](#license)
 
@@ -564,7 +564,7 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 * `code/dataset/generate_ReaSCAN_splits.ipynb`: generate splits for ReaSCAN.
 * `code/dataset/ReaSCAN-analysis.ipynb`: some analyses we conduct in the paper.
 
-## ReaSCAN as Abstract Reasoning Challenges
+## ReaSCAN as an Abstract Reasoning Challenge
 
 Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
 
