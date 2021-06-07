@@ -119,312 +119,312 @@ We keep our format the same as gSCAN. For each example, we provide the command a
  
 ```javascript
 {
-                "command": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
-                "grammer_pattern": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
-                "meaning": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
-                "derivation": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
-                "situation": {
-                    "grid_size": 6,
-                    "agent_position": {
-                        "row": "1",
-                        "column": "1"
-                    },
-                    "agent_direction": 0,
-                    "target_object": {
-                        "vector": "010010000001",
-                        "position": {
-                            "row": "2",
-                            "column": "3"
-                        },
-                        "object": {
-                            "shape": "circle",
-                            "color": "yellow",
-                            "size": "2"
-                        }
-                    },
-                    "distance_to_target": "3",
-                    "direction_to_target": "se",
-                    "placed_objects": {
-                        "0": {
-                            "vector": "010010000001",
-                            "position": {
-                                "row": "2",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "yellow",
-                                "size": "2"
-                            }
-                        },
-                        "1": {
-                            "vector": "001001000010",
-                            "position": {
-                                "row": "0",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "2": {
-                            "vector": "010010001000",
-                            "position": {
-                                "row": "3",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "3": {
-                            "vector": "100000100100",
-                            "position": {
-                                "row": "3",
-                                "column": "2"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "blue",
-                                "size": "1"
-                            }
-                        },
-                        "4": {
-                            "vector": "010010001000",
-                            "position": {
-                                "row": "5",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "5": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "3",
-                                "column": "4"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        },
-                        "6": {
-                            "vector": "001001000010",
-                            "position": {
-                                "row": "0",
-                                "column": "4"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "7": {
-                            "vector": "010000101000",
-                            "position": {
-                                "row": "4",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "8": {
-                            "vector": "010001000001",
-                            "position": {
-                                "row": "1",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "yellow",
-                                "size": "2"
-                            }
-                        },
-                        "9": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "1",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        },
-                        "10": {
-                            "vector": "001010001000",
-                            "position": {
-                                "row": "3",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "3"
-                            }
-                        },
-                        "11": {
-                            "vector": "001010001000",
-                            "position": {
-                                "row": "0",
-                                "column": "1"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "3"
-                            }
-                        },
-                        "12": {
-                            "vector": "001001000001",
-                            "position": {
-                                "row": "5",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "yellow",
-                                "size": "3"
-                            }
-                        },
-                        "13": {
-                            "vector": "001000100010",
-                            "position": {
-                                "row": "0",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "14": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "5",
-                                "column": "1"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        }
-                    },
-                    "carrying_object": null
-                },
-                "target_commands": "turn left,turn right,turn right,turn left,walk,turn left,turn right,turn right,turn left,walk,turn right,turn left,turn right,turn right,turn left,walk",
-                "verb_in_command": "pull",
-                "adverb_in_command": "cautiously",
-                "referred_target": "small object",
-                "object_pattern_map": {
-                    "$OBJ_0": "$SIZE $ABS_SHAPE",
-                    "$OBJ_1": "$COLOR $SHAPE",
-                    "$OBJ_2": "$SIZE $COLOR $ABS_SHAPE"
-                },
-                "relation_map": [
-                    [
-                        [
-                            "$OBJ_0",
-                            "$OBJ_1"
-                        ],
-                        "$SAME_COLUMN"
-                    ],
-                    [
-                        [
-                            "$OBJ_0",
-                            "$OBJ_2"
-                        ],
-                        "$SAME_SHAPE"
-                    ]
-                ],
-                "object_expression": {
-                    "$OBJ_0": "small object",
-                    "$OBJ_1": "green cylinder",
-                    "$OBJ_2": "small red object"
-                },
-                "n_object": 15,
-                "n_distractor": 12,
-                "full_relation_distractor": true,
-                "has_relation_distractor": true,
-                "has_attribute_distractor": true,
-                "has_isomorphism_distractor": true,
-                "has_random_distractor": false,
-                "n_random_distractor": 0,
-                "relation_distractor_metadata": [
-                    {
-                        "distractor_metadata": {
-                            "edge": [
-                                "$OBJ_0",
-                                "$OBJ_1"
-                            ],
-                            "relation_old_type": "$SAME_COLUMN",
-                            "full_set": true
-                        }
-                    },
-                    {
-                        "distractor_metadata": {
-                            "edge": [
-                                "$OBJ_0",
-                                "$OBJ_2"
-                            ],
-                            "relation_old_type": "$SAME_SHAPE",
-                            "full_set": true
-                        }
-                    }
-                ],
-                "attribute_distractor_metadata": [
-                    {
-                        "distractor_metadata": [
-                            {
-                                "modified_obj": "$OBJ_1",
-                                "modified_attribute": "$COLOR"
-                            }
-                        ]
-                    }
-                ],
-                "isomorphism_distractor_metadata": [
-                    {
-                        "distractor_metadata": [
-                            {
-                                "swapped_pair": [
-                                    "$OBJ_1",
-                                    "$OBJ_2"
-                                ],
-                                "before_pair_obj_str": [
-                                    "green cylinder",
-                                    "small red object"
-                                ],
-                                "after_pair_obj_str": [
-                                    "small green object",
-                                    "red cylinder"
-                                ],
-                                "size_shuffled": true,
-                                "color_shuffled": false,
-                                "shape_shuffled": true
-                            }
-                        ]
-                    }
-                ],
-                "random_distractor_metadata": [
-                    {}
-                ]
+    "command": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "grammer_pattern": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
+    "meaning": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "derivation": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
+    "situation": {
+        "grid_size": 6,
+        "agent_position": {
+            "row": "1",
+            "column": "1"
+        },
+        "agent_direction": 0,
+        "target_object": {
+            "vector": "010010000001",
+            "position": {
+                "row": "2",
+                "column": "3"
+            },
+            "object": {
+                "shape": "circle",
+                "color": "yellow",
+                "size": "2"
             }
+        },
+        "distance_to_target": "3",
+        "direction_to_target": "se",
+        "placed_objects": {
+            "0": {
+                "vector": "010010000001",
+                "position": {
+                    "row": "2",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "yellow",
+                    "size": "2"
+                }
+            },
+            "1": {
+                "vector": "001001000010",
+                "position": {
+                    "row": "0",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "2": {
+                "vector": "010010001000",
+                "position": {
+                    "row": "3",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "3": {
+                "vector": "100000100100",
+                "position": {
+                    "row": "3",
+                    "column": "2"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "blue",
+                    "size": "1"
+                }
+            },
+            "4": {
+                "vector": "010010001000",
+                "position": {
+                    "row": "5",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "5": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "3",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            },
+            "6": {
+                "vector": "001001000010",
+                "position": {
+                    "row": "0",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "7": {
+                "vector": "010000101000",
+                "position": {
+                    "row": "4",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "8": {
+                "vector": "010001000001",
+                "position": {
+                    "row": "1",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "yellow",
+                    "size": "2"
+                }
+            },
+            "9": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "1",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            },
+            "10": {
+                "vector": "001010001000",
+                "position": {
+                    "row": "3",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "3"
+                }
+            },
+            "11": {
+                "vector": "001010001000",
+                "position": {
+                    "row": "0",
+                    "column": "1"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "3"
+                }
+            },
+            "12": {
+                "vector": "001001000001",
+                "position": {
+                    "row": "5",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "yellow",
+                    "size": "3"
+                }
+            },
+            "13": {
+                "vector": "001000100010",
+                "position": {
+                    "row": "0",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "14": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "5",
+                    "column": "1"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            }
+        },
+        "carrying_object": null
+    },
+    "target_commands": "turn left,turn right,turn right,turn left,walk,turn left,turn right,turn right,turn left,walk,turn right,turn left,turn right,turn right,turn left,walk",
+    "verb_in_command": "pull",
+    "adverb_in_command": "cautiously",
+    "referred_target": "small object",
+    "object_pattern_map": {
+        "$OBJ_0": "$SIZE $ABS_SHAPE",
+        "$OBJ_1": "$COLOR $SHAPE",
+        "$OBJ_2": "$SIZE $COLOR $ABS_SHAPE"
+    },
+    "relation_map": [
+        [
+            [
+                "$OBJ_0",
+                "$OBJ_1"
+            ],
+            "$SAME_COLUMN"
+        ],
+        [
+            [
+                "$OBJ_0",
+                "$OBJ_2"
+            ],
+            "$SAME_SHAPE"
+        ]
+    ],
+    "object_expression": {
+        "$OBJ_0": "small object",
+        "$OBJ_1": "green cylinder",
+        "$OBJ_2": "small red object"
+    },
+    "n_object": 15,
+    "n_distractor": 12,
+    "full_relation_distractor": true,
+    "has_relation_distractor": true,
+    "has_attribute_distractor": true,
+    "has_isomorphism_distractor": true,
+    "has_random_distractor": false,
+    "n_random_distractor": 0,
+    "relation_distractor_metadata": [
+        {
+            "distractor_metadata": {
+                "edge": [
+                    "$OBJ_0",
+                    "$OBJ_1"
+                ],
+                "relation_old_type": "$SAME_COLUMN",
+                "full_set": true
+            }
+        },
+        {
+            "distractor_metadata": {
+                "edge": [
+                    "$OBJ_0",
+                    "$OBJ_2"
+                ],
+                "relation_old_type": "$SAME_SHAPE",
+                "full_set": true
+            }
+        }
+    ],
+    "attribute_distractor_metadata": [
+        {
+            "distractor_metadata": [
+                {
+                    "modified_obj": "$OBJ_1",
+                    "modified_attribute": "$COLOR"
+                }
+            ]
+        }
+    ],
+    "isomorphism_distractor_metadata": [
+        {
+            "distractor_metadata": [
+                {
+                    "swapped_pair": [
+                        "$OBJ_1",
+                        "$OBJ_2"
+                    ],
+                    "before_pair_obj_str": [
+                        "green cylinder",
+                        "small red object"
+                    ],
+                    "after_pair_obj_str": [
+                        "small green object",
+                        "red cylinder"
+                    ],
+                    "size_shuffled": true,
+                    "color_shuffled": false,
+                    "shape_shuffled": true
+                }
+            ]
+        }
+    ],
+    "random_distractor_metadata": [
+        {}
+    ]
+}
 ```
 </p>
 </details>
