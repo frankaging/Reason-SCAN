@@ -55,6 +55,7 @@ compositional split, containing test set only.
 * `ReaSCAN-compositional-b1`: [WARNING] This split is deprecated! Do not use!
 * `ReaSCAN-compositional-b2`: ReaSCAN B compositional split, containing test set only.
 * `ReaSCAN-compositional-c`: ReaSCAN C compositional split, containing test set only.
+Note that our A1 and A2 is similar to gSCAN's split B and C in the setup but different in what they are testing. We plan to support the splits in gSCAN in future releases as well. In fact, you can also generate your own compositional splits by modifying couple lines in `code/dataset/generate_ReaSCAN_splits.ipynb`.
 
 Special split,
 * `ReaSCAN-compositional-p3-rd`: ReaSCAN 2-relative-clauses set with random distractors, containing train, dev and test sets.
