@@ -7,10 +7,10 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 * [Example](#Example)
 * [Dataset](#Dataset)
 * [Data format](#data-format)
-* [Models](#models)
-* [Other files](#other-files)
 * [ReaSCAN as an Abstract Reasoning Challenge](#reascan-as-an-abstract-reasoning-challenge)
 * [Dataset Artifacts](#Dataset-artifacts)
+* [Models](#models)
+* [Other files](#other-files)
 * [License](#license)
 
 ## Citation
@@ -469,6 +469,23 @@ Each grid cell in a situation is fully specified by a vector:
 In case, if there are overlayed objects in a single cell, we add them together. This is only for a object that is inside of the box if the object is at the upper left corner. There are many other ways to represent this situation, but we take the simplest approach.
 
 
+## ReaSCAN as an Abstract Reasoning Challenge
+
+Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
+
+<img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
+
+## Dataset Artifacts
+
+ReaSCAN in not perfect. In fact, we document a list of artifacts in our paper. Please see our **Appendix B** for details. Please read this before you use ReaSCAN. Here is a short summary of that section in bullet points:
+
+* Non-comprehensive Linguistic Structures: Commands from ReaSCAN follow a specific linguistic template and are non-comprehensive in covering all linguistic structures. 
+* Non-comprehensive Distractors: ReaSCAN is not able to cover all possible distractors to make sure every part of the command is neccesary to resolve the referring expression.
+* Shapes and Relations Biases: The frequency distributions of shapes and relations may be biased due to the generation program.
+* Self-exclusiveness: We assume every object mention in the command matches to a unique object in the world.
+* Other Induced Artifacts: We also discuss frequency distributions of verbs, adverbs, agent facing directions, agent-target relative directions, etc..
+
+
 ## Models
 
 We use two existing models, and adapt their codes to benchmark ReaSCAN. Both models are published and experimented on gSCAN. Other than hyperparameter tunning, we are not changing model architectures.
@@ -564,21 +581,6 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 * `code/dataset/generate_ReaSCAN_splits.ipynb`: generate splits for ReaSCAN.
 * `code/dataset/ReaSCAN-analysis.ipynb`: some analyses we conduct in the paper.
 
-## ReaSCAN as an Abstract Reasoning Challenge
-
-Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
-
-<img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
-
-## Dataset Artifacts
-
-ReaSCAN in not perfect. In fact, we document a list of artifacts in our paper. Please see our **Appendix B** for details. Please read this before you use ReaSCAN. Here is a short summary of that section in bullet points:
-
-* Non-comprehensive Linguistic Structures: Commands from ReaSCAN follow a specific linguistic template and are non-comprehensive in covering all linguistic structures. 
-* Non-comprehensive Distractors: ReaSCAN is not able to cover all possible distractors to make sure every part of the command is neccesary to resolve the referring expression.
-* Shapes and Relations Biases: The frequency distributions of shapes and relations may be biased due to the generation program.
-* Self-exclusiveness: We assume every object mention in the command matches to a unique object in the world.
-* Other Induced Artifacts: We also discuss frequency distributions of verbs, adverbs, agent facing directions, agent-target relative directions, etc..
 
 ## License
 
