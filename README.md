@@ -474,6 +474,8 @@ Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human
 
 <img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
 
+You can generate such tasks using the script provided in `code/dataset/future-looking-demo.ipynb`.
+
 ## Dataset Artifacts
 
 ReaSCAN in not perfect. In fact, we document a list of artifacts in our paper. Please see our **Appendix B** for details. Please read this before you use ReaSCAN. Here is a short summary of that section in bullet points:
