@@ -60,7 +60,8 @@ class ReaSCANGraph(object):
                         self.relations[(obj_name, obj_str[0])] = ['$SHAPE']
                 elif len(obj_str) == 2:
                     if obj_str[0] in vocabulary.get_size_adjectives():
-                        self.relations[(obj_name, obj_str[0])] = ['$SIZE']
+                        # BUG: adding all descriptors to size.
+                        self.relations[(obj_name, obj_str[0]+obj_str[1])] = ['$SIZE']
                     elif obj_str[0] in vocabulary.get_color_adjectives():
                         self.relations[(obj_name, obj_str[0])] = ['$COLOR']
                     if obj_str[1] != "object":
@@ -74,8 +75,9 @@ class ReaSCANGraph(object):
                         size = obj_str[1]
                     elif obj_str[1] in vocabulary.get_color_adjectives():
                         color = obj_str[1]
-                    composite_c_size = size + " " + color
-                    self.relations[(obj_name,  composite_c_size)] = ['$SIZE_C'] # C_SIZE is sufficient.
+                    # BUG: adding all descriptors to size.
+                    self.relations[(obj_name,  obj_str[0]+obj_str[1]+obj_str[2])] = ['$SIZE']
+                    self.relations[(obj_name,  color)] = ['$COLOR']
                     if obj_str[2] != "object":
                         self.relations[(obj_name, obj_str[2])] = ['$SHAPE']
             for edge, relation in relations.items():
@@ -234,22 +236,38 @@ class ReaSCANGraph(object):
             relations[(obj_id, obj_spec.color)] = ["$COLOR"]
             relations[(obj_id, obj_spec.shape)] = ["$SHAPE"]
 
+            # BUG: adding all descriptors to size.
             for to_obj_id, to_obj_spec in objects.items():
                 if obj_id != to_obj_id:
                     # depending on the object pattern, we actually
                     # need to be certain on the attributes.
                     if to_obj_spec.shape == obj_spec.shape:
                         if obj_spec.size < to_obj_spec.size:
-                            relations[(obj_id, "small")] = ["$SIZE"]
+                            relations[(obj_id, "small"+obj_spec.shape)] = ["$SIZE"]
                         if obj_spec.size > to_obj_spec.size:
-                            relations[(obj_id, "big")] = ["$SIZE"]
+                            relations[(obj_id, "big"+obj_spec.shape)] = ["$SIZE"]
+                    
                     # If there is color and shape map, we need to add
                     # another set of edges other is color specific size edges.
                     if to_obj_spec.shape == obj_spec.shape and to_obj_spec.color == obj_spec.color:
                         if obj_spec.size < to_obj_spec.size:
-                            relations[(obj_id, "small" + " " + obj_spec.color)] = ["$SIZE_C"]
+                            relations[(obj_id, "small"+obj_spec.color+obj_spec.shape)] = ["$SIZE"]
                         if obj_spec.size > to_obj_spec.size:
-                            relations[(obj_id, "big" + " " + obj_spec.color)] = ["$SIZE_C"]
+                            relations[(obj_id, "big"+obj_spec.color+obj_spec.shape)] = ["$SIZE"]
+                    
+                    # For non-same shape, it is also possible to have shape descriptor
+                    if obj_spec.size < to_obj_spec.size:
+                        relations[(obj_id, "smallobject")] = ["$SIZE"]
+                    if obj_spec.size > to_obj_spec.size:
+                        relations[(obj_id, "bigobject")] = ["$SIZE"]
+                    
+                    if to_obj_spec.color == obj_spec.color:
+                        # For non-same shape, it is also possible to have shape descriptor
+                        if obj_spec.size < to_obj_spec.size:
+                            relations[(obj_id, "small"+obj_spec.color+"object")] = ["$SIZE"]
+                        if obj_spec.size > to_obj_spec.size:
+                            relations[(obj_id, "big"+obj_spec.color+"object")] = ["$SIZE"]
+                    
         # Relations
         for obj_id_left, obj_spec_left in objects.items():
             for obj_id_right, obj_spec_right in objects.items():
@@ -350,8 +368,11 @@ class ReaSCANGraph(object):
                 determiner_map[pattern_node_name] = "the"
             else:
                 determiner_map[pattern_node_name] = "a"
+        
         if debug:
             print(sub_G_node_attr_map)
+            print(determiner_map)
+        determiner_map[referred_object]  = "the"
 
         return determiner_map
     

@@ -1,3 +1,10 @@
+data-files-p1/
+data-files-p2/
+data-files-p3-rd/
+data-files-p3/
+data-files-p4/
+
+
 code/models/gSCAN_with_language_conditioned_embedding/analysis/
 code/models/gSCAN_with_language_conditioned_embedding/output/
 code/models/gSCAN_with_language_conditioned_embedding/exp/

@@ -1069,11 +1069,53 @@ class Simulator(object):
             relation_edges.append(edge)
         # if there is only 1 relation, do we really need it?
         # probably not?
-        if len(relation_edges) == 0 or len(relation_edges) == 1:
+        if len(relation_edges) == 0:
             # If there is only a single relation,
             # we will use the replacement method
             # to replace this relation with a new one!
             return []
+        elif len(relation_edges) == 1:
+            # for this, we simple sample another obj_0?
+            distractor_size_map = {}
+            distractor_obj_pattern_map = {}
+            distractor_obj_map = {}
+            distractor_rel_map = OrderedDict({})
+            
+            distractor_size_map["$OBJ_0"] = int(sampled_world["obj_map"]["$OBJ_0"].size)
+            distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map["$OBJ_0"]
+            distractor_obj_map["$OBJ_0"] = referent_obj_map["$OBJ_0"]
+            distractor_grammer_pattern = referent_grammer_pattern.split(" ")[0]
+
+            distractor_metadata = {
+                "edge" : "null",
+                "relation_old_type" : "null", # omit relations
+                "full_set" : True,
+            }
+            
+            distractors_dicts += [{
+                                    "grammer_pattern" : self.snap_pattern_to_referent_map(
+                                        distractor_grammer_pattern,
+                                        obj_base_count
+                                    ),
+                                    "obj_pattern_map" : self.snap_object_map_to_referent_map(
+                                        distractor_obj_pattern_map,
+                                        obj_base_count
+                                    ),
+                                    "rel_map" : self.snap_relation_map_to_referent_map(
+                                        distractor_rel_map,
+                                        obj_base_count
+                                    ),
+                                    "obj_map" : self.snap_object_map_to_referent_map(
+                                        distractor_obj_map,
+                                        obj_base_count
+                                    ),
+                                    "size_map" : self.snap_object_map_to_referent_map(
+                                        distractor_size_map,
+                                        obj_base_count
+                                    ),
+                                    "distractor_metadata" : distractor_metadata
+                                }]
+                
         else:
             # PR: always fullset.
             # random.shuffle(relation_edges)
@@ -1112,6 +1154,7 @@ class Simulator(object):
                 reverse_mapping = {}
                 distractor_obj_map = {}
                 for i in range(0, len(keeping_objects)):
+                    distractor_size_map[f"$OBJ_{i}"] = int(sampled_world["obj_map"][keeping_objects[i]].size)
                     distractor_obj_pattern_map[f"$OBJ_{i}"] = referent_obj_pattern_map[keeping_objects[i]]
                     distractor_obj_map[f"$OBJ_{i}"] = referent_obj_map[keeping_objects[i]]
                     reverse_mapping[keeping_objects[i]] = f"$OBJ_{i}"

@@ -922,9 +922,9 @@ if __name__ == "__main__":
                 )
 
                 # Save the result if the world is valid!
-                if len(potential_referent_target) == 1:
-                    at_least_success = True
-                    success_step += 1
+                
+                # This may be to strict, but it ensures 100% correct!
+                if len(potential_referent_target) == 1 and '$OBJ_0' in potential_referent_target:
                     # A quick world repeat check!
                     hash_world_str = hashlib.md5(str(sampled_world["situation"].to_representation()).encode('utf-8')).hexdigest()
                     if hash_world_str not in per_command_world_unique_check[command_struct_index]:
@@ -938,6 +938,21 @@ if __name__ == "__main__":
                         referred_object='$OBJ_0', 
                         debug=False,
                     )
+                    
+                    # we don't check this for P1 and P2?
+                    
+#                     valid_determiner = True
+#                     for k, v in obj_determiner_map.items():
+#                         if k != '$OBJ_0':
+#                             if v != "a":
+#                                 valid_determiner = False
+#                                 break
+#                     if not valid_determiner:
+#                         continue # we should abort and resample!
+                    
+                    at_least_success = True
+                    success_step += 1
+                    
                     command_str = grammer.repre_str_command(
                         grammer_pattern, rel_map, obj_map, 
                         obj_determiner_map, 
@@ -1116,6 +1131,8 @@ if __name__ == "__main__":
             json.dump(dataset_representation, fd, indent=4)
     else:
         pass
+    
+    logger.info("==FINISH==")
             
     if args.is_tensorboard:
         # end wandb
