@@ -7,9 +7,10 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 * [Example](#Example)
 * [Dataset](#Dataset)
 * [Data format](#data-format)
+* [ReaSCAN as an Abstract Reasoning Challenge](#reascan-as-an-abstract-reasoning-challenge)
+* [Dataset Artifacts](#Dataset-artifacts)
 * [Models](#models)
 * [Other files](#other-files)
-* [ReaSCAN As Abstract Reasoning Challenges](#reascan-as-abstract-reasoning-challenges)
 * [License](#license)
 
 ## Citation
@@ -17,7 +18,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 [Zhengxuan Wu](http://zen-wu.social), [Elisa Kreiss](https://www.elisakreiss.com/), [Desmond C. Ong](https://web.stanford.edu/~dco/), and [Christopher Potts](http://web.stanford.edu/~cgpotts/). 2020. [ReaSCAN: Compositional Reasoning in Language Grounding](http://zen-wu.social). Ms., Stanford University.
 
 ```stex
-  @article{wu-etal-2020-dynasent,
+  @article{wu-etal-2021-reascan,
     title={{ReaSCAN}: Compositional Reasoning in Language Grounding},
     author={Wu, Zhengxuan and Kreiss, Elisa and Ong, Desmond C. and Potts, Christopher},
     journal={},
@@ -49,8 +50,7 @@ By patterns,
 
 By splits,
 * `ReaSCAN-compositional-a1`: ReaSCAN A1 compositional split, containing test set only.
-* `ReaSCAN-compositional-a2`: ReaSCAN A2dataset
-compositional split, containing test set only.
+* `ReaSCAN-compositional-a2`: ReaSCAN A2 compositional split, containing test set only.
 * `ReaSCAN-compositional-a3`: ReaSCAN A3 compositional split, containing test set only.
 * `ReaSCAN-compositional-b1`: [WARNING] This split is deprecated! Do not use!
 * `ReaSCAN-compositional-b2`: ReaSCAN B compositional split, containing test set only.
@@ -119,312 +119,312 @@ We keep our format the same as gSCAN. For each example, we provide the command a
  
 ```javascript
 {
-                "command": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
-                "grammer_pattern": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
-                "meaning": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
-                "derivation": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
-                "situation": {
-                    "grid_size": 6,
-                    "agent_position": {
-                        "row": "1",
-                        "column": "1"
-                    },
-                    "agent_direction": 0,
-                    "target_object": {
-                        "vector": "010010000001",
-                        "position": {
-                            "row": "2",
-                            "column": "3"
-                        },
-                        "object": {
-                            "shape": "circle",
-                            "color": "yellow",
-                            "size": "2"
-                        }
-                    },
-                    "distance_to_target": "3",
-                    "direction_to_target": "se",
-                    "placed_objects": {
-                        "0": {
-                            "vector": "010010000001",
-                            "position": {
-                                "row": "2",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "yellow",
-                                "size": "2"
-                            }
-                        },
-                        "1": {
-                            "vector": "001001000010",
-                            "position": {
-                                "row": "0",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "2": {
-                            "vector": "010010001000",
-                            "position": {
-                                "row": "3",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "3": {
-                            "vector": "100000100100",
-                            "position": {
-                                "row": "3",
-                                "column": "2"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "blue",
-                                "size": "1"
-                            }
-                        },
-                        "4": {
-                            "vector": "010010001000",
-                            "position": {
-                                "row": "5",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "5": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "3",
-                                "column": "4"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        },
-                        "6": {
-                            "vector": "001001000010",
-                            "position": {
-                                "row": "0",
-                                "column": "4"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "7": {
-                            "vector": "010000101000",
-                            "position": {
-                                "row": "4",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "red",
-                                "size": "2"
-                            }
-                        },
-                        "8": {
-                            "vector": "010001000001",
-                            "position": {
-                                "row": "1",
-                                "column": "3"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "yellow",
-                                "size": "2"
-                            }
-                        },
-                        "9": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "1",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        },
-                        "10": {
-                            "vector": "001010001000",
-                            "position": {
-                                "row": "3",
-                                "column": "5"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "3"
-                            }
-                        },
-                        "11": {
-                            "vector": "001010001000",
-                            "position": {
-                                "row": "0",
-                                "column": "1"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "red",
-                                "size": "3"
-                            }
-                        },
-                        "12": {
-                            "vector": "001001000001",
-                            "position": {
-                                "row": "5",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "yellow",
-                                "size": "3"
-                            }
-                        },
-                        "13": {
-                            "vector": "001000100010",
-                            "position": {
-                                "row": "0",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "square",
-                                "color": "green",
-                                "size": "3"
-                            }
-                        },
-                        "14": {
-                            "vector": "100001001000",
-                            "position": {
-                                "row": "5",
-                                "column": "1"
-                            },
-                            "object": {
-                                "shape": "cylinder",
-                                "color": "red",
-                                "size": "1"
-                            }
-                        }
-                    },
-                    "carrying_object": null
-                },
-                "target_commands": "turn left,turn right,turn right,turn left,walk,turn left,turn right,turn right,turn left,walk,turn right,turn left,turn right,turn right,turn left,walk",
-                "verb_in_command": "pull",
-                "adverb_in_command": "cautiously",
-                "referred_target": "small object",
-                "object_pattern_map": {
-                    "$OBJ_0": "$SIZE $ABS_SHAPE",
-                    "$OBJ_1": "$COLOR $SHAPE",
-                    "$OBJ_2": "$SIZE $COLOR $ABS_SHAPE"
-                },
-                "relation_map": [
-                    [
-                        [
-                            "$OBJ_0",
-                            "$OBJ_1"
-                        ],
-                        "$SAME_COLUMN"
-                    ],
-                    [
-                        [
-                            "$OBJ_0",
-                            "$OBJ_2"
-                        ],
-                        "$SAME_SHAPE"
-                    ]
-                ],
-                "object_expression": {
-                    "$OBJ_0": "small object",
-                    "$OBJ_1": "green cylinder",
-                    "$OBJ_2": "small red object"
-                },
-                "n_object": 15,
-                "n_distractor": 12,
-                "full_relation_distractor": true,
-                "has_relation_distractor": true,
-                "has_attribute_distractor": true,
-                "has_isomorphism_distractor": true,
-                "has_random_distractor": false,
-                "n_random_distractor": 0,
-                "relation_distractor_metadata": [
-                    {
-                        "distractor_metadata": {
-                            "edge": [
-                                "$OBJ_0",
-                                "$OBJ_1"
-                            ],
-                            "relation_old_type": "$SAME_COLUMN",
-                            "full_set": true
-                        }
-                    },
-                    {
-                        "distractor_metadata": {
-                            "edge": [
-                                "$OBJ_0",
-                                "$OBJ_2"
-                            ],
-                            "relation_old_type": "$SAME_SHAPE",
-                            "full_set": true
-                        }
-                    }
-                ],
-                "attribute_distractor_metadata": [
-                    {
-                        "distractor_metadata": [
-                            {
-                                "modified_obj": "$OBJ_1",
-                                "modified_attribute": "$COLOR"
-                            }
-                        ]
-                    }
-                ],
-                "isomorphism_distractor_metadata": [
-                    {
-                        "distractor_metadata": [
-                            {
-                                "swapped_pair": [
-                                    "$OBJ_1",
-                                    "$OBJ_2"
-                                ],
-                                "before_pair_obj_str": [
-                                    "green cylinder",
-                                    "small red object"
-                                ],
-                                "after_pair_obj_str": [
-                                    "small green object",
-                                    "red cylinder"
-                                ],
-                                "size_shuffled": true,
-                                "color_shuffled": false,
-                                "shape_shuffled": true
-                            }
-                        ]
-                    }
-                ],
-                "random_distractor_metadata": [
-                    {}
-                ]
+    "command": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "grammer_pattern": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
+    "meaning": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "derivation": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
+    "situation": {
+        "grid_size": 6,
+        "agent_position": {
+            "row": "1",
+            "column": "1"
+        },
+        "agent_direction": 0,
+        "target_object": {
+            "vector": "010010000001",
+            "position": {
+                "row": "2",
+                "column": "3"
+            },
+            "object": {
+                "shape": "circle",
+                "color": "yellow",
+                "size": "2"
             }
+        },
+        "distance_to_target": "3",
+        "direction_to_target": "se",
+        "placed_objects": {
+            "0": {
+                "vector": "010010000001",
+                "position": {
+                    "row": "2",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "yellow",
+                    "size": "2"
+                }
+            },
+            "1": {
+                "vector": "001001000010",
+                "position": {
+                    "row": "0",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "2": {
+                "vector": "010010001000",
+                "position": {
+                    "row": "3",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "3": {
+                "vector": "100000100100",
+                "position": {
+                    "row": "3",
+                    "column": "2"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "blue",
+                    "size": "1"
+                }
+            },
+            "4": {
+                "vector": "010010001000",
+                "position": {
+                    "row": "5",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "5": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "3",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            },
+            "6": {
+                "vector": "001001000010",
+                "position": {
+                    "row": "0",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "7": {
+                "vector": "010000101000",
+                "position": {
+                    "row": "4",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "red",
+                    "size": "2"
+                }
+            },
+            "8": {
+                "vector": "010001000001",
+                "position": {
+                    "row": "1",
+                    "column": "3"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "yellow",
+                    "size": "2"
+                }
+            },
+            "9": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "1",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            },
+            "10": {
+                "vector": "001010001000",
+                "position": {
+                    "row": "3",
+                    "column": "5"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "3"
+                }
+            },
+            "11": {
+                "vector": "001010001000",
+                "position": {
+                    "row": "0",
+                    "column": "1"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "red",
+                    "size": "3"
+                }
+            },
+            "12": {
+                "vector": "001001000001",
+                "position": {
+                    "row": "5",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "yellow",
+                    "size": "3"
+                }
+            },
+            "13": {
+                "vector": "001000100010",
+                "position": {
+                    "row": "0",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "square",
+                    "color": "green",
+                    "size": "3"
+                }
+            },
+            "14": {
+                "vector": "100001001000",
+                "position": {
+                    "row": "5",
+                    "column": "1"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "red",
+                    "size": "1"
+                }
+            }
+        },
+        "carrying_object": null
+    },
+    "target_commands": "turn left,turn right,turn right,turn left,walk,turn left,turn right,turn right,turn left,walk,turn right,turn left,turn right,turn right,turn left,walk",
+    "verb_in_command": "pull",
+    "adverb_in_command": "cautiously",
+    "referred_target": "small object",
+    "object_pattern_map": {
+        "$OBJ_0": "$SIZE $ABS_SHAPE",
+        "$OBJ_1": "$COLOR $SHAPE",
+        "$OBJ_2": "$SIZE $COLOR $ABS_SHAPE"
+    },
+    "relation_map": [
+        [
+            [
+                "$OBJ_0",
+                "$OBJ_1"
+            ],
+            "$SAME_COLUMN"
+        ],
+        [
+            [
+                "$OBJ_0",
+                "$OBJ_2"
+            ],
+            "$SAME_SHAPE"
+        ]
+    ],
+    "object_expression": {
+        "$OBJ_0": "small object",
+        "$OBJ_1": "green cylinder",
+        "$OBJ_2": "small red object"
+    },
+    "n_object": 15,
+    "n_distractor": 12,
+    "full_relation_distractor": true,
+    "has_relation_distractor": true,
+    "has_attribute_distractor": true,
+    "has_isomorphism_distractor": true,
+    "has_random_distractor": false,
+    "n_random_distractor": 0,
+    "relation_distractor_metadata": [
+        {
+            "distractor_metadata": {
+                "edge": [
+                    "$OBJ_0",
+                    "$OBJ_1"
+                ],
+                "relation_old_type": "$SAME_COLUMN",
+                "full_set": true
+            }
+        },
+        {
+            "distractor_metadata": {
+                "edge": [
+                    "$OBJ_0",
+                    "$OBJ_2"
+                ],
+                "relation_old_type": "$SAME_SHAPE",
+                "full_set": true
+            }
+        }
+    ],
+    "attribute_distractor_metadata": [
+        {
+            "distractor_metadata": [
+                {
+                    "modified_obj": "$OBJ_1",
+                    "modified_attribute": "$COLOR"
+                }
+            ]
+        }
+    ],
+    "isomorphism_distractor_metadata": [
+        {
+            "distractor_metadata": [
+                {
+                    "swapped_pair": [
+                        "$OBJ_1",
+                        "$OBJ_2"
+                    ],
+                    "before_pair_obj_str": [
+                        "green cylinder",
+                        "small red object"
+                    ],
+                    "after_pair_obj_str": [
+                        "small green object",
+                        "red cylinder"
+                    ],
+                    "size_shuffled": true,
+                    "color_shuffled": false,
+                    "shape_shuffled": true
+                }
+            ]
+        }
+    ],
+    "random_distractor_metadata": [
+        {}
+    ]
+}
 ```
 </p>
 </details>
@@ -466,6 +466,25 @@ Each grid cell in a situation is fully specified by a vector:
 """
 ```
 In case, if there are overlayed objects in a single cell, we add them together. This is only for a object that is inside of the box if the object is at the upper left corner. There are many other ways to represent this situation, but we take the simplest approach.
+
+
+## ReaSCAN as an Abstract Reasoning Challenge
+
+Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
+
+<img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
+
+You can generate such tasks using the script provided in `code/dataset/future-looking-demo.ipynb`.
+
+## Dataset Artifacts
+
+ReaSCAN in not perfect. In fact, we document a list of artifacts in our paper. Please see our **Appendix B** for details. Please read this before you use ReaSCAN. Here is a short summary of that section in bullet points:
+
+* **Non-comprehensive Linguistic Structures**: Commands from ReaSCAN follow a specific linguistic template and are non-comprehensive in covering all linguistic structures. 
+* **Non-comprehensive Distractors**: ReaSCAN is not able to cover all possible distractors to make sure every part of the command is necessary to resolve the referring expression.
+* **Shapes and Relations Biases**: The frequency distributions of shapes and relations may be biased due to the generation program.
+* **Self-exclusiveness**: We assume every object mention in the command matches a unique object in the world.
+* **Other Induced Artifacts**: We also discuss frequency distributions of verbs, adverbs, agent facing directions, agent-target relative directions, etc.
 
 
 ## Models
@@ -563,11 +582,6 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 * `code/dataset/generate_ReaSCAN_splits.ipynb`: generate splits for ReaSCAN.
 * `code/dataset/ReaSCAN-analysis.ipynb`: some analyses we conduct in the paper.
 
-## ReaSCAN as Abstract Reasoning Challenges
-
-Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
-
-<img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
 
 ## License
 
