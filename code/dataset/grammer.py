@@ -515,11 +515,14 @@ class Grammer(object):
                 grounded_rel_clause.append(obj_determiner_map[obj_curr] + " " + obj_map[obj_curr])
             else:
                 recursive_child = rel_clause[i+1]
-                rel = rel_map[(recursive_parent, recursive_child)]
-                rel_str = self.REL_REGEX_VOCAB_MAPPING[rel]
                 if obj_curr == self.RECURSIVE_REGEX:
+                    recursive_parent = rel_clause[i-1]
+                    rel = rel_map[(recursive_parent, recursive_child)]
+                    rel_str = self.REL_REGEX_VOCAB_MAPPING[rel]
                     grounded_rel_clause.append(self.RECURSIVE)
                 else:
+                    rel = rel_map[(recursive_parent, recursive_child)]
+                    rel_str = self.REL_REGEX_VOCAB_MAPPING[rel]
                     grounded_rel_clause.append(self.AND)
                 grounded_rel_clause.append(rel_str)
         

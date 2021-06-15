@@ -376,7 +376,11 @@ class ReaSCANGraph(object):
 
         return determiner_map
     
-    def find_referred_object_super_fast(self, relation_pattern, referred_object="$OBJ_0", debug=False):
+    def find_referred_object_super_fast(
+        self, relation_pattern, referred_object="$OBJ_0", 
+        pattern="$OBJ_0 ^ $OBJ_1 & $OBJ_2",
+        debug=False
+    ):
         """
         We need this super fast algorithm to do pattern matching.
         Otherwise, who problem becomes unscalable!
@@ -384,35 +388,21 @@ class ReaSCANGraph(object):
         Note that this only works for a fixed pattern searching,
         which is:
         $OBJ_0 ^ $OBJ_1 & $OBJ_2
+        
+        We also added in support for:
+        $OBJ_0 ^ $OBJ_1 ^ $OBJ_2
         """
         
         # Let us support more!
         
-        
+        # TODO: integrate this into the conditions below.
+        matched_pivot_node = set([])
         G = self.G_full.copy()
         G_to_plot = self.G.copy()
         sub_G = relation_pattern.G_full.copy()
         
         sub_G_node_attr_map = {}
         rel_reverse_map = {}
-        for edge in sub_G.edges(data=True):
-            if edge[2]["type"] in ["$SAME_ROW", "$SAME_COLUMN", 
-                                   "$SAME_SHAPE", "$SAME_COLOR", 
-                                   "$SAME_SIZE", "$IS_INSIDE"]:
-
-                if edge[0] in sub_G_node_attr_map.keys():
-                    sub_G_node_attr_map[edge[0]].add(edge[2]["type"])
-                else:
-                    sub_G_node_attr_map[edge[0]] = set([edge[2]["type"]])
-                child_node = edge[1] if edge[0] == "$OBJ_0" else edge[0]
-                if child_node in rel_reverse_map.keys():
-                    assert rel_reverse_map[child_node] == edge[2]["type"] # safe-belt
-                rel_reverse_map[child_node] = edge[2]["type"]
-            else:                    
-                if edge[0] in sub_G_node_attr_map.keys():
-                    sub_G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
-                else:
-                    sub_G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
         
         G_node_attr_map = {}
         G_nbr_map = {}
@@ -438,7 +428,63 @@ class ReaSCANGraph(object):
                     G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
                 else:
                     G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
-        matched_pivot_node = set([])
+        
+        if pattern == "$OBJ_0 ^ $OBJ_1 ^ $OBJ_2":
+            
+            sub_G_edge_relation_map = {}
+            for edge in sub_G.edges(data=True):
+                if edge[2]["type"] in ["$SAME_ROW", "$SAME_COLUMN", 
+                                       "$SAME_SHAPE", "$SAME_COLOR", 
+                                       "$SAME_SIZE", "$IS_INSIDE"]:
+                    if edge[0] in sub_G_node_attr_map.keys():
+                        sub_G_node_attr_map[edge[0]].add(edge[2]["type"])
+                    else:
+                        sub_G_node_attr_map[edge[0]] = set([edge[2]["type"]])
+                    if (edge[0], edge[1]) in sub_G_edge_relation_map.keys():
+                        assert False
+                    else:
+                        sub_G_edge_relation_map[(edge[0], edge[1])] = edge[2]["type"]
+                else:                    
+                    if edge[0] in sub_G_node_attr_map.keys():
+                        sub_G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
+                    else:
+                        sub_G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
+            
+            for node_name, attr_set in G_node_attr_map.items():
+                if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):
+                    # Now, we just need to find 2 nbr nodes matchs $OBJ_1 and $OBJ_2 attributes at
+                    # the same time.
+                    for nbr in G_nbr_map[node_name]:
+                        if sub_G_edge_relation_map[("$OBJ_0", "$OBJ_1")] in G_edge_relation_map[(node_name, nbr)] and \
+                            len(sub_G_node_attr_map["$OBJ_1"].intersection(G_node_attr_map[nbr])) == len(sub_G_node_attr_map["$OBJ_1"]):
+                            for sub_nbr in G_nbr_map[nbr]:
+                                if sub_nbr != node_name:
+                                    if sub_G_edge_relation_map[("$OBJ_1", "$OBJ_2")] in G_edge_relation_map[(nbr, sub_nbr)] and \
+                                        len(sub_G_node_attr_map["$OBJ_2"].intersection(G_node_attr_map[sub_nbr])) == len(sub_G_node_attr_map["$OBJ_2"]):
+                                        # we have a match for OBJ_2
+                                        matched_pivot_node.add(node_name)
+            
+            return matched_pivot_node
+        
+        for edge in sub_G.edges(data=True):
+            if edge[2]["type"] in ["$SAME_ROW", "$SAME_COLUMN", 
+                                   "$SAME_SHAPE", "$SAME_COLOR", 
+                                   "$SAME_SIZE", "$IS_INSIDE"]:
+
+                if edge[0] in sub_G_node_attr_map.keys():
+                    sub_G_node_attr_map[edge[0]].add(edge[2]["type"])
+                else:
+                    sub_G_node_attr_map[edge[0]] = set([edge[2]["type"]])
+                child_node = edge[1] if edge[0] == "$OBJ_0" else edge[0]
+                if child_node in rel_reverse_map.keys():
+                    assert rel_reverse_map[child_node] == edge[2]["type"] # safe-belt
+                rel_reverse_map[child_node] = edge[2]["type"]
+            else:                    
+                if edge[0] in sub_G_node_attr_map.keys():
+                    sub_G_node_attr_map[edge[0]].add(edge[1] + " " + edge[2]["type"])
+                else:
+                    sub_G_node_attr_map[edge[0]] = set([edge[1] + " " + edge[2]["type"]])
+        
         if len(rel_reverse_map) == 2:
             for node_name, attr_set in G_node_attr_map.items():
                 if len(sub_G_node_attr_map["$OBJ_0"].intersection(attr_set)) == len(sub_G_node_attr_map["$OBJ_0"]):

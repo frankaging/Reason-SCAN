@@ -1117,53 +1117,26 @@ class Simulator(object):
                                 }]
                 
         else:
-            # PR: always fullset.
-            # random.shuffle(relation_edges)
-            # if full_set:
-            #     pass
-            # else:
-            #    relation_edges = relation_edges[:1] # select only the first element.
-
-            existing_relations = set([v for k, v in referent_rel_map.items()])
-
-            for selected_leaf_edge in relation_edges:
-
-                distractor_metadata = {
-                    "edge" : selected_leaf_edge,
-                    "relation_old_type" : referent_rel_map[selected_leaf_edge], # omit relations
-                    "full_set" : full_set,
-                }
-                
-                # now for the selected edge, we omit them!
-                distractor_grammer_pattern = referent_grammer_pattern.split(" ")[:-2]
-                distractor_grammer_pattern = " ".join(distractor_grammer_pattern) # omiting the last.
-                
+            if referent_grammer_pattern == "$OBJ_0 ^ $OBJ_1 ^ $OBJ_2":
+                # for this, we simple sample another obj_0?
                 distractor_size_map = {}
-                
-                # First, let us make copies.
                 distractor_obj_pattern_map = {}
-                keeping_edges = []
-                keeping_objects = []
-                for keeping_edge in relation_edges:
-                    if keeping_edge != selected_leaf_edge:
-                        keeping_edges.append(keeping_edge)
-                        if keeping_edge[0] not in keeping_objects:
-                            keeping_objects.append(keeping_edge[0])
-                        if keeping_edge[1] not in keeping_objects:
-                            keeping_objects.append(keeping_edge[1])
-                reverse_mapping = {}
                 distractor_obj_map = {}
-                for i in range(0, len(keeping_objects)):
-                    distractor_size_map[f"$OBJ_{i}"] = int(sampled_world["obj_map"][keeping_objects[i]].size)
-                    distractor_obj_pattern_map[f"$OBJ_{i}"] = referent_obj_pattern_map[keeping_objects[i]]
-                    distractor_obj_map[f"$OBJ_{i}"] = referent_obj_map[keeping_objects[i]]
-                    reverse_mapping[keeping_objects[i]] = f"$OBJ_{i}"
-                
                 distractor_rel_map = OrderedDict({})
-                for keeping_edge in keeping_edges:
-                    distractor_rel_map[reverse_mapping[keeping_edge[0]], reverse_mapping[keeping_edge[1]]] = referent_rel_map[keeping_edge]
-                
-                # We need to increment the object counters.
+
+                # distractor_size_map["$OBJ_0"] = int(sampled_world["obj_map"]["$OBJ_0"].size)
+                distractor_obj_pattern_map["$OBJ_0"] = referent_obj_pattern_map["$OBJ_0"]
+                distractor_obj_pattern_map["$OBJ_1"] = referent_obj_pattern_map["$OBJ_1"]
+                distractor_obj_map["$OBJ_0"] = referent_obj_map["$OBJ_0"]
+                distractor_obj_map["$OBJ_1"] = referent_obj_map["$OBJ_1"]
+                distractor_grammer_pattern = "$OBJ_0 ^ $OBJ_1"
+                distractor_rel_map[("$OBJ_0", "$OBJ_1")] = referent_rel_map[("$OBJ_0", "$OBJ_1")]
+                distractor_metadata = {
+                    "edge" : ("$OBJ_0", "$OBJ_1"),
+                    "relation_old_type" : referent_rel_map[("$OBJ_0", "$OBJ_1")], # omit relations
+                    "full_set" : True,
+                }
+
                 distractors_dicts += [{
                                         "grammer_pattern" : self.snap_pattern_to_referent_map(
                                             distractor_grammer_pattern,
@@ -1187,8 +1160,81 @@ class Simulator(object):
                                         ),
                                         "distractor_metadata" : distractor_metadata
                                     }]
-                
-                obj_base_count += len(distractor_obj_pattern_map)
+
+            else:
+            
+                # PR: always fullset.
+                # random.shuffle(relation_edges)
+                # if full_set:
+                #     pass
+                # else:
+                #    relation_edges = relation_edges[:1] # select only the first element.
+                existing_relations = set([v for k, v in referent_rel_map.items()])
+
+                for selected_leaf_edge in relation_edges:
+
+                    distractor_metadata = {
+                        "edge" : selected_leaf_edge,
+                        "relation_old_type" : referent_rel_map[selected_leaf_edge], # omit relations
+                        "full_set" : full_set,
+                    }
+
+                    # now for the selected edge, we omit them!
+                    distractor_grammer_pattern = referent_grammer_pattern.split(" ")[:-2]
+                    distractor_grammer_pattern = " ".join(distractor_grammer_pattern) # omiting the last.
+
+                    distractor_size_map = {}
+
+                    # First, let us make copies.
+                    distractor_obj_pattern_map = {}
+                    keeping_edges = []
+                    keeping_objects = []
+                    for keeping_edge in relation_edges:
+                        if keeping_edge != selected_leaf_edge:
+                            keeping_edges.append(keeping_edge)
+                            if keeping_edge[0] not in keeping_objects:
+                                keeping_objects.append(keeping_edge[0])
+                            if keeping_edge[1] not in keeping_objects:
+                                keeping_objects.append(keeping_edge[1])
+                    reverse_mapping = {}
+                    distractor_obj_map = {}
+                    for i in range(0, len(keeping_objects)):
+                        # The following line is way too strict I think!
+                        # distractor_size_map[f"$OBJ_{i}"] = int(sampled_world["obj_map"][keeping_objects[i]].size)
+                        distractor_obj_pattern_map[f"$OBJ_{i}"] = referent_obj_pattern_map[keeping_objects[i]]
+                        distractor_obj_map[f"$OBJ_{i}"] = referent_obj_map[keeping_objects[i]]
+                        reverse_mapping[keeping_objects[i]] = f"$OBJ_{i}"
+
+                    distractor_rel_map = OrderedDict({})
+                    for keeping_edge in keeping_edges:
+                        distractor_rel_map[reverse_mapping[keeping_edge[0]], reverse_mapping[keeping_edge[1]]] = referent_rel_map[keeping_edge]
+
+                    # We need to increment the object counters.
+                    distractors_dicts += [{
+                                            "grammer_pattern" : self.snap_pattern_to_referent_map(
+                                                distractor_grammer_pattern,
+                                                obj_base_count
+                                            ),
+                                            "obj_pattern_map" : self.snap_object_map_to_referent_map(
+                                                distractor_obj_pattern_map,
+                                                obj_base_count
+                                            ),
+                                            "rel_map" : self.snap_relation_map_to_referent_map(
+                                                distractor_rel_map,
+                                                obj_base_count
+                                            ),
+                                            "obj_map" : self.snap_object_map_to_referent_map(
+                                                distractor_obj_map,
+                                                obj_base_count
+                                            ),
+                                            "size_map" : self.snap_object_map_to_referent_map(
+                                                distractor_size_map,
+                                                obj_base_count
+                                            ),
+                                            "distractor_metadata" : distractor_metadata
+                                        }]
+
+                    obj_base_count += len(distractor_obj_pattern_map)
 
         return distractors_dicts
             
