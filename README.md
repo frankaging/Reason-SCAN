@@ -117,223 +117,199 @@ We keep our format the same as gSCAN. For each example, we provide the command a
  
 ```javascript
 {
-    "command": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "command": "push,the,big,green,object,that,is,inside,of,a,red,box,and,in,the,same,row,as,a,blue,cylinder",
     "grammer_pattern": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
-    "meaning": "pull,a,small,object,that,is,in,the,same,column,as,a,green,cylinder,and,in,the,same,shape,as,a,small,red,object,cautiously",
+    "meaning": "push,the,big,green,object,that,is,inside,of,a,red,box,and,in,the,same,row,as,a,blue,cylinder",
     "derivation": "$OBJ_0 ^ $OBJ_1 & $OBJ_2",
     "situation": {
         "grid_size": 6,
         "agent_position": {
-            "row": "1",
-            "column": "1"
+            "row": "5",
+            "column": "3"
         },
         "agent_direction": 0,
         "target_object": {
-            "vector": "010010000001",
+            "vector": "000101000010",
             "position": {
-                "row": "2",
-                "column": "3"
+                "row": "3",
+                "column": "1"
             },
             "object": {
-                "shape": "circle",
-                "color": "yellow",
-                "size": "2"
+                "shape": "cylinder",
+                "color": "green",
+                "size": "4"
             }
         },
-        "distance_to_target": "3",
-        "direction_to_target": "se",
+        "distance_to_target": "4",
+        "direction_to_target": "nw",
         "placed_objects": {
             "0": {
-                "vector": "010010000001",
+                "vector": "000101000010",
+                "position": {
+                    "row": "3",
+                    "column": "1"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "green",
+                    "size": "4"
+                }
+            },
+            "1": {
+                "vector": "001000011000",
+                "position": {
+                    "row": "2",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "box",
+                    "color": "red",
+                    "size": "3"
+                }
+            },
+            "2": {
+                "vector": "001001000100",
+                "position": {
+                    "row": "3",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "blue",
+                    "size": "3"
+                }
+            },
+            "3": {
+                "vector": "000110000010",
+                "position": {
+                    "row": "0",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "green",
+                    "size": "4"
+                }
+            },
+            "4": {
+                "vector": "001001000100",
+                "position": {
+                    "row": "0",
+                    "column": "0"
+                },
+                "object": {
+                    "shape": "cylinder",
+                    "color": "blue",
+                    "size": "3"
+                }
+            },
+            "5": {
+                "vector": "000101000010",
                 "position": {
                     "row": "2",
                     "column": "3"
                 },
                 "object": {
-                    "shape": "circle",
-                    "color": "yellow",
-                    "size": "2"
-                }
-            },
-            "1": {
-                "vector": "001001000010",
-                "position": {
-                    "row": "0",
-                    "column": "3"
-                },
-                "object": {
                     "shape": "cylinder",
                     "color": "green",
-                    "size": "3"
-                }
-            },
-            "2": {
-                "vector": "010010001000",
-                "position": {
-                    "row": "3",
-                    "column": "0"
-                },
-                "object": {
-                    "shape": "circle",
-                    "color": "red",
-                    "size": "2"
-                }
-            },
-            "3": {
-                "vector": "100000100100",
-                "position": {
-                    "row": "3",
-                    "column": "2"
-                },
-                "object": {
-                    "shape": "square",
-                    "color": "blue",
-                    "size": "1"
-                }
-            },
-            "4": {
-                "vector": "010010001000",
-                "position": {
-                    "row": "5",
-                    "column": "5"
-                },
-                "object": {
-                    "shape": "circle",
-                    "color": "red",
-                    "size": "2"
-                }
-            },
-            "5": {
-                "vector": "100001001000",
-                "position": {
-                    "row": "3",
-                    "column": "4"
-                },
-                "object": {
-                    "shape": "cylinder",
-                    "color": "red",
-                    "size": "1"
+                    "size": "4"
                 }
             },
             "6": {
-                "vector": "001001000010",
+                "vector": "001000011000",
                 "position": {
-                    "row": "0",
-                    "column": "4"
+                    "row": "1",
+                    "column": "1"
                 },
                 "object": {
-                    "shape": "cylinder",
-                    "color": "green",
+                    "shape": "box",
+                    "color": "red",
                     "size": "3"
                 }
             },
             "7": {
-                "vector": "010000101000",
+                "vector": "100010000010",
                 "position": {
                     "row": "4",
-                    "column": "3"
+                    "column": "4"
                 },
                 "object": {
-                    "shape": "square",
-                    "color": "red",
-                    "size": "2"
+                    "shape": "circle",
+                    "color": "green",
+                    "size": "1"
                 }
             },
             "8": {
-                "vector": "010001000001",
+                "vector": "001001001000",
                 "position": {
-                    "row": "1",
-                    "column": "3"
-                },
-                "object": {
-                    "shape": "cylinder",
-                    "color": "yellow",
-                    "size": "2"
-                }
-            },
-            "9": {
-                "vector": "100001001000",
-                "position": {
-                    "row": "1",
+                    "row": "5",
                     "column": "5"
                 },
                 "object": {
                     "shape": "cylinder",
                     "color": "red",
+                    "size": "3"
+                }
+            },
+            "9": {
+                "vector": "100010000001",
+                "position": {
+                    "row": "3",
+                    "column": "4"
+                },
+                "object": {
+                    "shape": "circle",
+                    "color": "yellow",
                     "size": "1"
                 }
             },
             "10": {
-                "vector": "001010001000",
+                "vector": "010000100100",
                 "position": {
                     "row": "3",
                     "column": "5"
                 },
                 "object": {
-                    "shape": "circle",
-                    "color": "red",
-                    "size": "3"
+                    "shape": "square",
+                    "color": "blue",
+                    "size": "2"
                 }
             },
             "11": {
-                "vector": "001010001000",
+                "vector": "000110000100",
                 "position": {
-                    "row": "0",
-                    "column": "1"
+                    "row": "1",
+                    "column": "0"
                 },
                 "object": {
                     "shape": "circle",
-                    "color": "red",
-                    "size": "3"
+                    "color": "blue",
+                    "size": "4"
                 }
             },
             "12": {
-                "vector": "001001000001",
+                "vector": "000101001000",
                 "position": {
-                    "row": "5",
-                    "column": "0"
-                },
-                "object": {
-                    "shape": "cylinder",
-                    "color": "yellow",
-                    "size": "3"
-                }
-            },
-            "13": {
-                "vector": "001000100010",
-                "position": {
-                    "row": "0",
-                    "column": "0"
-                },
-                "object": {
-                    "shape": "square",
-                    "color": "green",
-                    "size": "3"
-                }
-            },
-            "14": {
-                "vector": "100001001000",
-                "position": {
-                    "row": "5",
-                    "column": "1"
+                    "row": "2",
+                    "column": "5"
                 },
                 "object": {
                     "shape": "cylinder",
                     "color": "red",
-                    "size": "1"
+                    "size": "4"
                 }
             }
         },
         "carrying_object": null
     },
-    "target_commands": "turn left,turn right,turn right,turn left,walk,turn left,turn right,turn right,turn left,walk,turn right,turn left,turn right,turn right,turn left,walk",
-    "verb_in_command": "pull",
-    "adverb_in_command": "cautiously",
-    "referred_target": "small object",
+    "target_commands": "turn left,turn left,walk,walk,turn right,walk,walk,push,push,push,push,push,push",
+    "verb_in_command": "push",
+    "adverb_in_command": "",
+    "referred_target": "big green object",
     "object_pattern_map": {
-        "$OBJ_0": "$SIZE $ABS_SHAPE",
+        "$OBJ_0": "$SIZE $COLOR $ABS_SHAPE",
         "$OBJ_1": "$COLOR $SHAPE",
-        "$OBJ_2": "$SIZE $COLOR $ABS_SHAPE"
+        "$OBJ_2": "$COLOR $SHAPE"
     },
     "relation_map": [
         [
@@ -341,29 +317,29 @@ We keep our format the same as gSCAN. For each example, we provide the command a
                 "$OBJ_0",
                 "$OBJ_1"
             ],
-            "$SAME_COLUMN"
+            "$IS_INSIDE"
         ],
         [
             [
                 "$OBJ_0",
                 "$OBJ_2"
             ],
-            "$SAME_SHAPE"
+            "$SAME_ROW"
         ]
     ],
     "object_expression": {
-        "$OBJ_0": "small object",
-        "$OBJ_1": "green cylinder",
-        "$OBJ_2": "small red object"
+        "$OBJ_0": "big green object",
+        "$OBJ_1": "red box",
+        "$OBJ_2": "blue cylinder"
     },
-    "n_object": 15,
-    "n_distractor": 12,
+    "n_object": 13,
+    "n_distractor": 10,
     "full_relation_distractor": true,
     "has_relation_distractor": true,
-    "has_attribute_distractor": true,
-    "has_isomorphism_distractor": true,
-    "has_random_distractor": false,
-    "n_random_distractor": 0,
+    "has_attribute_distractor": false,
+    "has_isomorphism_distractor": false,
+    "has_random_distractor": true,
+    "n_random_distractor": 5,
     "relation_distractor_metadata": [
         {
             "distractor_metadata": {
@@ -371,7 +347,7 @@ We keep our format the same as gSCAN. For each example, we provide the command a
                     "$OBJ_0",
                     "$OBJ_1"
                 ],
-                "relation_old_type": "$SAME_COLUMN",
+                "relation_old_type": "$IS_INSIDE",
                 "full_set": true
             }
         },
@@ -381,7 +357,7 @@ We keep our format the same as gSCAN. For each example, we provide the command a
                     "$OBJ_0",
                     "$OBJ_2"
                 ],
-                "relation_old_type": "$SAME_SHAPE",
+                "relation_old_type": "$SAME_ROW",
                 "full_set": true
             }
         }
@@ -390,37 +366,21 @@ We keep our format the same as gSCAN. For each example, we provide the command a
         {
             "distractor_metadata": [
                 {
-                    "modified_obj": "$OBJ_1",
-                    "modified_attribute": "$COLOR"
+                    "modified_obj": null,
+                    "modified_attribute": null
                 }
             ]
         }
     ],
-    "isomorphism_distractor_metadata": [
-        {
-            "distractor_metadata": [
-                {
-                    "swapped_pair": [
-                        "$OBJ_1",
-                        "$OBJ_2"
-                    ],
-                    "before_pair_obj_str": [
-                        "green cylinder",
-                        "small red object"
-                    ],
-                    "after_pair_obj_str": [
-                        "small green object",
-                        "red cylinder"
-                    ],
-                    "size_shuffled": true,
-                    "color_shuffled": false,
-                    "shape_shuffled": true
-                }
-            ]
-        }
-    ],
+    "isomorphism_distractor_metadata": [],
     "random_distractor_metadata": [
-        {}
+        {
+            "$OBJ_8": " red cylinder",
+            "$OBJ_9": " yellow circle",
+            "$OBJ_10": " blue square",
+            "$OBJ_11": " blue circle",
+            "$OBJ_12": " red cylinder"
+        }
     ]
 }
 ```
@@ -445,7 +405,7 @@ Following steps in this script, each example will be translated to a data struct
 <p>
  
 ```javascript
-{"input": ["pull", "a", "big", "yellow", "square", "that", "is", "in", "the", "same", "row", "as", "a", "small", "blue", "circle", "and", "in", "the", "same", "column", "as", "a", "big", "green", "cylinder"], "target": ["turn left", "turn left", "walk", "walk", "walk", "walk", "turn left", "walk", "walk", "pull", "pull", "pull", "pull"], "situation": [[[0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]]}
+{"input": ["walk", "to", "the", "big", "blue", "circle", "that", "is", "in", "the", "same", "column", "as", "a", "big", "blue", "cylinder", "and", "in", "the", "same", "row", "as", "a", "red", "square", "hesitantly"], "target": ["walk", "stay", "walk", "stay", "walk", "stay", "turn left", "walk", "stay"], "situation": [[[0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]], [[0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]]}
 ```
 </p>
 </details>
