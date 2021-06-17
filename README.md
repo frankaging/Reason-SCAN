@@ -29,7 +29,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 ## Example
 Four command-world pairs for different command patterns. Our simple command is equivalent to [gSCAN](https://arxiv.org/abs/2003.05161). **RD** means distractors are randomly sampled. Referent targets shaded in red with distractors are shaded in blue, and are highlighted by green dash lines.
 
-<img src="https://i.ibb.co/Yfx5WTj/overview.png" width="800">
+<img src="https://i.ibb.co/zXKwmYn/Screen-Shot-2021-06-16-at-8-22-52-PM.png" width="800">
 
 ## Dataset
 
