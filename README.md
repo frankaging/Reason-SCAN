@@ -3,6 +3,10 @@
 
 ReaSCAN is a synthetic navigation task that requires models to reason about surroundings over syntactically difficult languages.
 
+## Release Notes
+* **06/17/2021**: We update model performance results by fixing known issues. We include more compositional splits as well. 
+* **06/07/2021**: We submit our preprint to NIPS2021.
+
 ## Contents
 
 * [Citation](#Citation)
