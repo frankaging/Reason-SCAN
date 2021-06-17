@@ -39,7 +39,7 @@ We generated ReaSCAN using our pipeline with fixed random seeds. You can reprodu
 
 Our generated data is in [ReaSCAN-v1.0.zip](https://drive.google.com/file/d/1quUyPHTRdsfdZ80hrGX9p7o-TMdEGJtj/view?usp=sharing), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: Simple (similar to gSCAN), P2: 1-relative-clause, P3: 2-relative-clauses, P4: 3-relative-clauses) and different compositional splits (see [our paper]() for details about each split).
 
-By patterns,
+Random splits that can be used for training your models,
 * `ReaSCAN-compositional`: ReaSCAN all commands, containing train, dev and test sets.
 * `ReaSCAN-compositional-p1`: ReaSCAN Simple set, containing train, dev and test sets.
 * `ReaSCAN-compositional-p2`: ReaSCAN 1-relative-clause set, containing train, dev and test sets.
@@ -47,24 +47,22 @@ By patterns,
 * `ReaSCAN-compositional-p1-test`: ReaSCAN Simple set, containing test set only.
 * `ReaSCAN-compositional-p2-test`: ReaSCAN 1-relative-clause set, containing test set only.
 * `ReaSCAN-compositional-p3-test`: ReaSCAN 2-relative-clauses set, containing test set only.
-
-By splits,
-* `ReaSCAN-compositional-a1`: ReaSCAN A1 compositional split, containing test set only.
-* `ReaSCAN-compositional-a2`: ReaSCAN A2 compositional split, containing test set only.
-* `ReaSCAN-compositional-a3`: ReaSCAN A3 compositional split, containing test set only.
-* `ReaSCAN-compositional-b1`: [WARNING] This split is deprecated! Do not use!
-* `ReaSCAN-compositional-b2`: ReaSCAN B compositional split, containing test set only.
-* `ReaSCAN-compositional-c`: ReaSCAN C compositional split, containing test set only.
-
-Note that our A1 and A2 is similar to gSCAN's split B and C in the setup but different in what they are testing. We plan to support the splits in gSCAN in future releases as well. In fact, you can also generate your own compositional splits by modifying couple lines in `code/dataset/generate_ReaSCAN_splits.ipynb`.
-
-Special split,
 * `ReaSCAN-compositional-p3-rd`: ReaSCAN 2-relative-clauses set with random distractors, containing train, dev and test sets.
-* `ReaSCAN-compositional-p4` or `ReaSCAN-compositional-p4-test`: ReaSCAN 3-relative-clauses set only, containing test set only.
+
+Compositional splits that are designed to be zero-shot testing splits,
+* `ReaSCAN-compositional-a1`: ReaSCAN A1 (novel color modifier) compositional split, containing test set only.
+* `ReaSCAN-compositional-a2`: ReaSCAN A2 (novel color attribute) compositional split, containing test set only.
+* `ReaSCAN-compositional-a3`: ReaSCAN A3 (novel size modifier) compositional split, containing test set only.
+* `ReaSCAN-compositional-b1`: ReaSCAN B1 (novel co-occurence of objects) compositional split, containing test set only.
+* `ReaSCAN-compositional-b2`: ReaSCAN B2 (novel co-occurence of relations) compositional split, containing test set only.
+* `ReaSCAN-compositional-c1`: ReaSCAN C1 (novel conjunctive clause length) compositional split, containing test set only.
+* `ReaSCAN-compositional-c2`: ReaSCAN C2 (novel relative clauses) compositional split, containing test set only.
+
+You can also generate your own compositional splits by modifying couple lines in `code/dataset/generate_ReaSCAN_splits.ipynb`.
 
 ### Regenerate ReaSCAN
 
-You can recreate ReaSCAN shared above using provided scripts. Since generating a full-fleged dataset can take long, you can use our multi-process generator which can generate any subset included in our paper within 20 mininutes with 50 processes. Here are some example code we used to generate 2-relative-clauses set dataset. For exact scripts we use to generate our dataset used in the paper, you can refer to ``code/experiments.sh``.
+You can recreate ReaSCAN using provided scripts as well. Since generating a full-fleged dataset can take long, you can use our multi-process generator which can generate any subset included in our paper within 20 mininutes with 50 processes. Here are some example code we used to generate 2-relative-clauses set dataset. For exact scripts we use to generate our dataset used in the paper, you can refer to ``code/experiments.sh``.
 
 Single process generation,
 ```bash
@@ -94,7 +92,7 @@ cd code/dataset
 
 python generate_ReaSCAN_batch.py
 ```
-Note that you need to go into the file and modify some variables to generate the dataset you want.
+Note that you need to go into the file and modify some variables to generate the dataset you want. After generating the datasets, if you want to create your own splits, you need to follow the provided dataset split helpers in `code/dataset/generate_ReaSCAN_splits.ipynb`.
 
 ## Dataset format
 
