@@ -5,7 +5,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 ## Release Notes
 * **06/17/2021**: We update model performance results by fixing known issues. We include more compositional splits as well. 
-* **06/07/2021**: We submit our preprint to NIPS2021.
+* **06/07/2021**: We submit our preprint to NeurIPS2021.
 
 ## Contents
 
