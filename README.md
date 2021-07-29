@@ -4,6 +4,7 @@
 ReaSCAN is a synthetic navigation task that requires models to reason about surroundings over syntactically difficult languages.
 
 ## Release Notes
+* **07/29/2021**: Our paper is accepted to NeurIPS2021 with [OpenReview](https://openreview.net/forum?id=Rtquf4Jk0jN).
 * **06/17/2021**: We update model performance results by fixing known issues. We include more compositional splits as well. 
 * **06/07/2021**: We submit our preprint to NeurIPS2021.
 
@@ -25,10 +26,10 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 ```stex
   @article{wu-etal-2021-reascan,
-    title={{ReaSCAN}: Compositional Reasoning in Language Grounding},
+    title={Rea{SCAN}: Compositional Reasoning in Language Grounding},
     author={Wu, Zhengxuan and Kreiss, Elisa and Ong, Desmond C. and Potts, Christopher},
-    journal={},
-    url={},
+    journal={NeurIPS 2021 Datasets and Benchmarks Track},
+    url={https://openreview.net/forum?id=Rtquf4Jk0jN},
     year={2021}}
 ```
 
