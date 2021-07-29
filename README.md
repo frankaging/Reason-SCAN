@@ -22,7 +22,7 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 ## Citation
 
-[Zhengxuan Wu](http://zen-wu.social), [Elisa Kreiss](https://www.elisakreiss.com/), [Desmond C. Ong](https://web.stanford.edu/~dco/), and [Christopher Potts](http://web.stanford.edu/~cgpotts/). 2021. [ReaSCAN: Compositional Reasoning in Language Grounding](http://zen-wu.social). Ms., Stanford University.
+[Zhengxuan Wu](http://zen-wu.social), [Elisa Kreiss](https://www.elisakreiss.com/), [Desmond C. Ong](https://web.stanford.edu/~dco/), and [Christopher Potts](http://web.stanford.edu/~cgpotts/). 2021. [ReaSCAN: Compositional Reasoning in Language Grounding](http://zen-wu.social). NeurIPS 2021 Datasets and Benchmarks Track.
 
 ```stex
   @article{wu-etal-2021-reascan,
