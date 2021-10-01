@@ -10,12 +10,12 @@ ReaSCAN is a synthetic navigation task that requires models to reason about surr
 
 ## Contents
 
-* [Citation](#Citation)
-* [Example](#Example)
-* [Dataset](#Dataset)
-* [Data format](#data-format)
+* [Citation](#citation)
+* [Example](#example)
+* [Dataset](#dataset)
+* [Data format](#dataset-format)
 * [ReaSCAN as an Abstract Reasoning Challenge](#reascan-as-an-abstract-reasoning-challenge)
-* [Dataset Artifacts](#Dataset-artifacts)
+* [Dataset Artifacts](#dataset-artifacts)
 * [Models](#models)
 * [Other files](#other-files)
 * [License](#license)
