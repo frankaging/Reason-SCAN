@@ -73,7 +73,7 @@ You can also generate your own compositional splits by modifying couple lines in
 
 ### Updated Non-generalization Testing Performance
 
-As raised by [this PR](https://github.com/frankaging/Reason-SCAN/issues/1), the Table 3 in our paper includes testing performance on non-generalization testing sets (e.g., the top 4 rows in the table). Those sets are later found to be overestimating model performance as they may include *exact* same examples from the training set. You can find detailed analyses [here](https://github.com/frankaging/Reason-SCAN/blob/main/code/dataset/verify_split_tests.ipynb). We thus update the dataset, and you can now download it at [ReaSCAN-v1.1.zip](https://drive.google.com/file/d/1foVr1MPqPqBQgoOqVgVFWUIwXERPMM4I/view?usp=sharing). We also report model performance on these updated non-generalization testing sets as follows:
+The Table 3 in our paper includes testing performance on non-generalization testing sets (e.g., the top 4 rows in the table). As raised by [this PR](https://github.com/frankaging/Reason-SCAN/issues/1), those sets are later found to be overestimating model performance as they may include *exact* same examples from the training set. You can find detailed analyses [here](https://github.com/frankaging/Reason-SCAN/blob/main/code/dataset/verify_split_tests.ipynb). We thus update the dataset, and you can now download it at [ReaSCAN-v1.1.zip](https://drive.google.com/file/d/1foVr1MPqPqBQgoOqVgVFWUIwXERPMM4I/view?usp=sharing). We also report model performance on these updated non-generalization testing sets as follows:
 
 Compositional Splits | Command-World Pairs | M-LSTM | GCN-LSTM 
 --- | --- | --- | --- 
