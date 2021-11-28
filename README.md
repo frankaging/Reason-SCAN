@@ -4,6 +4,7 @@
 ReaSCAN is a synthetic navigation task that requires models to reason about surroundings over syntactically difficult languages.
 
 ## Release Notes
+* **11/28/2021**: We release newer version of non-generalization testing sets for different command patterns as [ReaSCAN-v1.1.zip](https://drive.google.com/file/d/1foVr1MPqPqBQgoOqVgVFWUIwXERPMM4I/view?usp=sharing).
 * **07/29/2021**: Our paper is accepted to NeurIPS2021 with [OpenReview](https://openreview.net/forum?id=Rtquf4Jk0jN).
 * **06/17/2021**: We update model performance results by fixing known issues. We include more compositional splits as well. 
 * **06/07/2021**: We submit our preprint to NeurIPS2021.
@@ -44,16 +45,19 @@ Four command-world pairs for different command patterns. Our simple command is e
 
 We generated ReaSCAN using our pipeline with fixed random seeds. You can reproduce the version of ReaSCAN we use in the paper by running the pipeline. Additionally, we also update the version we use to a online folder where you can directly download and use as-it-is. Note that, the dataset files are really large. It may take a while to download them.
 
-Our generated data is in [ReaSCAN-v1.0.zip](https://drive.google.com/file/d/1tRCl-ciPSz-XRDYFgy0O36YpDl48VydP/view?usp=sharing) (Note that we updated our files to hotfix some of existing issues at *06/16/2021*), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: Simple (similar to gSCAN), P2: 1-relative-clause, P3: 2-relative-clauses, P4: 3-relative-clauses) and different compositional splits (see [our paper]() for details about each split).
+Our generated data is in [ReaSCAN-v1.1.zip](https://drive.google.com/file/d/1foVr1MPqPqBQgoOqVgVFWUIwXERPMM4I/view?usp=sharing) (Note that we updated our files to hotfix some of existing issues on *06/16/2021*. We also included newer non-generalization testing sets on *11/28/2021*), which is saved in a shared drive. The dataset consists subsets generated for different patterns (P1: Simple (similar to gSCAN), P2: 1-relative-clause, P3: 2-relative-clauses, P4: 3-relative-clauses) and different compositional splits (see [our paper](https://arxiv.org/pdf/2109.08994.pdf) for details about each split).
 
 Random splits that can be used for training your models,
 * `ReaSCAN-compositional`: ReaSCAN all commands, containing train, dev and test sets.
 * `ReaSCAN-compositional-p1`: ReaSCAN Simple set, containing train, dev and test sets.
 * `ReaSCAN-compositional-p2`: ReaSCAN 1-relative-clause set, containing train, dev and test sets.
 * `ReaSCAN-compositional-p3`: ReaSCAN 2-relative-clauses set, containing train, dev and test sets.
-* `ReaSCAN-compositional-p1-test`: ReaSCAN Simple set, containing test set only.
-* `ReaSCAN-compositional-p2-test`: ReaSCAN 1-relative-clause set, containing test set only.
-* `ReaSCAN-compositional-p3-test`: ReaSCAN 2-relative-clauses set, containing test set only.
+* `ReaSCAN-compositional-p1-test`: ReaSCAN Simple set, containing test set only. Model performance is reported in the paper.
+* `ReaSCAN-compositional-p2-test`: ReaSCAN 1-relative-clause set, containing test set only. Model performance is reported in the paper.
+* `ReaSCAN-compositional-p3-test`: ReaSCAN 2-relative-clauses set, containing test set only. Model performance is reported in the paper.
+* `ReaSCAN-compositional-p1-test-updated`: **UPDATED** ReaSCAN Simple set, containing test set only. Model performance is **NOT** reported in the paper.
+* `ReaSCAN-compositional-p2-test-updated`: **UPDATED** ReaSCAN 1-relative-clause set, containing test set only. Model performance is **NOT** reported in the paper.
+* `ReaSCAN-compositional-p3-test-updated`: **UPDATED** ReaSCAN 2-relative-clauses set, containing test set only. Model performance is **NOT** reported in the paper.
 * `ReaSCAN-compositional-p3-rd`: ReaSCAN 2-relative-clauses set with random distractors, containing train, dev and test sets.
 
 Compositional splits that are designed to be zero-shot testing splits,
@@ -66,6 +70,19 @@ Compositional splits that are designed to be zero-shot testing splits,
 * `ReaSCAN-compositional-c2`: ReaSCAN C2 (novel relative clauses) compositional split, containing test set only.
 
 You can also generate your own compositional splits by modifying couple lines in `code/dataset/generate_ReaSCAN_splits.ipynb`.
+
+### Updated Non-generalization Testing Performance
+
+As raised by [this PR](https://github.com/frankaging/Reason-SCAN/issues/1), the Table 3 in our paper includes testing performance on non-generalization testing sets (e.g., the top 4 rows in the table). Those sets are later found to be overestimating model performance as they may include *exact* same examples from the training set. You can find detailed analyses [here](https://github.com/frankaging/Reason-SCAN/blob/main/code/dataset/verify_split_tests.ipynb). We thus update the dataset, and you can now download it at [ReaSCAN-v1.1.zip](https://drive.google.com/file/d/1foVr1MPqPqBQgoOqVgVFWUIwXERPMM4I/view?usp=sharing). We also report model performance on these updated non-generalization testing sets as follows:
+
+Compositional Splits | Command-World Pairs | M-LSTM | GCN-LSTM 
+--- | --- | --- | --- 
+**UPDATED** Simple (Test) | 907 | 93.83	(0.76) |  99.38 (0.13)
+**UPDATED** 1-relative-clause (Test) | 2122 | 75.59	(2.29) |  97.71 (0.56)
+**UPDATED** 2-relative-clauses (Test) | 2724 | 67.16 (2.50) |  95.87 (0.40)
+**UPDATED** All (Test) | 5753 | 74.47	(1.71) |  97.10	(0.38)
+
+**CAVEATS**: When you compare your model performance with the baselines, please pay attention to what sets you are using. If you use the old sets, you want to use the numbers from the paper. Otherwise, you need to use the updated numbers here if you use the updated version for these sets.
 
 ### Regenerate ReaSCAN
 
@@ -118,7 +135,7 @@ print(data_json["examples"].keys())
 
 We keep our format the same as gSCAN. For each example, we provide the command and the world representation. Additionally, we provide ReaSCAN specific metadata,
 
-<details open>
+<details close>
 <summary>The first data example in the split called ReaSCAN-compositional-p3-test set. Click to open/close.</summary>
 <p>
  
@@ -437,7 +454,7 @@ In case, if there are overlayed objects in a single cell, we add them together. 
 
 Two simplified abstract reasoning challenges with ReaSCAN. The task mimics human reasoning test where giving a set of input-output (input on the left and output on the right) pairs, the task taker needs to guess the output for the last input. For each task, we provide one potential abstract reasoning to solve the task.
 
-<img src="https://i.ibb.co/0J4n24c/Rea-SCAN-ARC.png" width="800">
+<img src="https://i.ibb.co/yp4wD7N/Screen-Shot-2021-11-28-at-3-14-07-AM.png" width="800">
 
 You can generate such tasks using the script provided in `code/dataset/future-looking-demo.ipynb`.
 
@@ -546,7 +563,6 @@ In this repo, we also provide a lot of useful scripts to analyze ReaSCAN in vari
 * `code/dataset/unit_tests.ipynb`: unit tests for ReaSCAN. If you want to customized ReaSCAN, please run this unit test before changing anything.
 * `code/dataset/generate_ReaSCAN_splits.ipynb`: generate splits for ReaSCAN.
 * `code/dataset/ReaSCAN-analysis.ipynb`: some analyses we conduct in the paper.
-
 
 ## License
 
